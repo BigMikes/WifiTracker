@@ -2,10 +2,10 @@ package com.project.mps.wifitracker;
 
 import android.content.ContentValues;
 import android.content.Context;
-import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
+import java.util.UUID;
 
 /**
  * Created by Luigi on 07/04/2016.
@@ -39,7 +39,7 @@ public class DbManager extends SQLiteOpenHelper {
         String CREATE_MEASURES_TABLE = "CREATE TABLE " + TABLE_MEASURES
                 + "("
                     + KEY_ID            + " INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,"
-                    + KEY_ID_MEASURE    + " INTEGER NOT NULL,"
+                    + KEY_ID_MEASURE    + " TEXT NOT NULL,"
                     + KEY_EDIFICIO      + " TEXT NOT NULL,"
                     + KEY_PIANO         + " TEXT NOT NULL,"
                     + KEY_AULA          + " TEXT NOT NULL,"
@@ -62,13 +62,12 @@ public class DbManager extends SQLiteOpenHelper {
 
     public void store (Measurement measureList) {
         Log.v("DBManager", "store");
-        int max_id = this.maxId();
 
         SQLiteDatabase db = this.getWritableDatabase();
 
         for(WifiInfo wf : measureList.getSamples()) {
             ContentValues values = new ContentValues();
-            values.put(KEY_ID_MEASURE, max_id + 1);
+            values.put(KEY_ID_MEASURE, UUID.randomUUID().toString());
             values.put(KEY_EDIFICIO, measureList.getBuilding());
             values.put(KEY_PIANO, measureList.getFloor());
             values.put(KEY_AULA, measureList.getRoom());
@@ -83,21 +82,4 @@ public class DbManager extends SQLiteOpenHelper {
         db.close();
     }
 
-    public int maxId() {
-        Log.v("DBManager", "maxid 1");
-        int max_id;
-
-        SQLiteDatabase db = this.getReadableDatabase();
-
-        Cursor cursor = db.query(TABLE_MEASURES, new String[] {"MAX(" + KEY_ID_MEASURE +")"}, null, null, null, null, null);
-        if(cursor.getString(0) == null) {
-            max_id = 0;
-        } else {
-            max_id = Integer.parseInt( cursor.getString(0) );
-        }
-        cursor.close();
-        db.close();
-        return max_id;
-
-    }
 }
