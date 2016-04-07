@@ -85,27 +85,16 @@ public class DbManager extends SQLiteOpenHelper {
 
     public int maxId() {
         Log.v("DBManager", "maxid 1");
-
         int max_id;
 
         SQLiteDatabase db = this.getReadableDatabase();
 
-        Log.v("DBManager", "maxid2");
         Cursor cursor = db.query(TABLE_MEASURES, new String[] {"MAX(" + KEY_ID_MEASURE +")"}, null, null, null, null, null);
-        Log.v("DBManager", "maxid3");
-
-        if(cursor != null) {
-            cursor.moveToFirst();
-        } else {
-            max_id = 0;
-        }
-
         if(cursor.getString(0) == null) {
             max_id = 0;
         } else {
             max_id = Integer.parseInt( cursor.getString(0) );
         }
-
         cursor.close();
         db.close();
         return max_id;
