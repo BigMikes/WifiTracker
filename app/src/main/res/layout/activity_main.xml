@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingBottom="@dimen/activity_vertical_margin"
+    android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:paddingTop="@dimen/activity_vertical_margin"
+    tools:context="com.project.mps.wifitracker.MainActivity">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:text="@string/string_building"
+        android:id="@+id/text_building"
+        android:layout_marginTop="25dp"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_marginRight="25dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:text="@string/string_floor"
+        android:id="@+id/text_floor"
+        android:layout_marginTop="25dp"
+        android:layout_below="@+id/text_building"
+        android:layout_alignRight="@+id/text_building"
+        android:layout_alignEnd="@+id/text_building" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:text="@string/string_room"
+        android:id="@+id/text_room"
+        android:layout_marginTop="25dp"
+        android:layout_below="@+id/text_floor"
+        android:layout_alignRight="@+id/text_floor"
+        android:layout_alignEnd="@+id/text_floor" />
+
+    <EditText
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/input_building"
+        android:inputType="textAutoComplete"
+        android:layout_above="@+id/text_floor"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
+        android:layout_toEndOf="@+id/text_building"
+        android:layout_toRightOf="@+id/text_building"
+        android:autoText="false"
+        android:gravity="center" />
+
+    <EditText
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/input_floor"
+        android:inputType="textAutoComplete"
+        android:layout_above="@+id/text_room"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
+        android:layout_toRightOf="@+id/text_building"
+        android:layout_toEndOf="@+id/text_building"
+        android:autoText="false"
+        android:gravity="center" />
+
+    <EditText
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/input_room"
+        android:inputType="textAutoComplete"
+        android:layout_alignBottom="@+id/text_room"
+        android:layout_alignLeft="@+id/input_floor"
+        android:layout_alignStart="@+id/input_floor"
+        android:layout_alignRight="@+id/input_floor"
+        android:layout_alignEnd="@+id/input_floor"
+        android:autoText="false"
+        android:gravity="center" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:text="@string/string_num_samp"
+        android:id="@+id/text_samples"
+        android:layout_marginTop="25dp"
+        android:layout_below="@+id/text_room"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_marginRight="25dp" />
+
+    <EditText
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:inputType="number"
+        android:ems="10"
+        android:id="@+id/input_num_samp"
+        android:layout_alignBottom="@+id/text_samples"
+        android:layout_alignRight="@+id/input_room"
+        android:layout_alignEnd="@+id/input_room"
+        android:layout_toRightOf="@+id/text_samples"
+        android:layout_toEndOf="@+id/text_samples"
+        android:autoText="false"
+        android:gravity="center" />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/string_start"
+        android:id="@+id/button_start"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="74dp" />
+
+    <ProgressBar
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/progressBar"
+        android:layout_above="@+id/button_start"
+        android:layout_marginBottom="57dp"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true" />
+
+</RelativeLayout>

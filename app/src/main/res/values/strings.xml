@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">Wifi Tracker</string>
+    <string name="string_start">Start measuring</string>
+    <string name="string_num_samp">Number of samples</string>
+    <string name="string_room">Room</string>
+    <string name="string_floor">Floor</string>
+    <string name="string_building">Building</string>
+</resources>
