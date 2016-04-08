@@ -80,7 +80,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 Log.v("BUTTON HANDLER", "export");
-                dbm.printDb();
+                dbm.LogDb();
                 sendDB();
             }
         });
@@ -124,14 +124,11 @@ public class MainActivity extends AppCompatActivity {
         measurement = null;
     }
 
-    //TODO: for the moment doesn't work since the db is empty remember to test when full
+    //Intent ACTION_SEND cannot be sent from outside an activity so it must be implementede here
     public void sendDB() {
         Log.v("SEND_DB", "start");
-
-        Log.v("SEND_DB", "send database");
         Intent i = new Intent(Intent.ACTION_SEND);
-        i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        Log.v("SEND_DB", "db: " + getDatabasePath(dbm.getDbName()));
+        //i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         i.putExtra(Intent.EXTRA_STREAM, Uri.fromFile(getDatabasePath(dbm.getDbName())));
         i.setType("application//octet-stream");
         startActivity(Intent.createChooser(i, "Export DB"));
@@ -149,6 +146,7 @@ public class MainActivity extends AppCompatActivity {
                 String info = "";
                 List<ScanResult> results;
                 results = WifiManager.getScanResults();
+
                 Log.i(TAG, "Sample: " + numberOfSamples + " TIME: " + ts + " SCAN: \n");
                 for (int i = 0; i < results.size(); i++) {
                     /*------------------------------------DEBUG-------------------------------*/
@@ -157,6 +155,7 @@ public class MainActivity extends AppCompatActivity {
                     Log.i(TAG, info);
                     info = "";
                     /*------------------------------------------------------------------------*/
+
                     Integer freq = results.get(i).frequency;
                     Integer level = results.get(i).level;
                     WifiInfo toAdd = new WifiInfo(results.get(i).BSSID, results.get(i).SSID, freq.toString(), level.toString());

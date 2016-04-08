@@ -96,7 +96,7 @@ public class DbManager extends SQLiteOpenHelper {
         return DATABASE_NAME;
     }
 
-    public void printDb() {
+    public void LogDb() {
         SQLiteDatabase db = this.getReadableDatabase();
 
         Cursor c = db.rawQuery("SELECT * FROM " + TABLE_MEASURES, null);
@@ -106,16 +106,6 @@ public class DbManager extends SQLiteOpenHelper {
             c.close();
         }
         db.close();
-    }
-
-    //TODO: this is out of activity implementation doesn't work for the moment
-    public void sendDb() {
-        Log.v("SEND_DB", "start");
-        Intent i = new Intent(Intent.ACTION_SEND);
-        i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        i.putExtra(Intent.EXTRA_STREAM, context.getDatabasePath(DATABASE_NAME));
-        i.setType("application//octet-stream");
-        context.startActivity(Intent.createChooser(i, "Export DB"));
     }
 
 }
