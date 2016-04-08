@@ -34,28 +34,29 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        //database
+        //initialization
         dbm = new DbManager(getApplicationContext());
-
         measuring = false;
         numberOfSamples = 10;
         WifiManager = (WifiManager)getSystemService(Context.WIFI_SERVICE);
         WifiRec = new WifiReceiver();
+
+
         registerReceiver(WifiRec, new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));
         //If the wifi is turned off, it will be activated
-        if(WifiManager.isWifiEnabled() == false)
+        if(!WifiManager.isWifiEnabled())
         {
             WifiManager.setWifiEnabled(true);
             Toast.makeText(this, "Activating Wifi module", Toast.LENGTH_LONG).show();
         }
 
         //Set the listener for the start measuring button
+
         Button btSave = (Button) findViewById(R.id.button_start);
         btSave.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 Log.v("BUTTON HANDLER", "start");
-                sendDB();
                 scanWifi();
             }
         });
@@ -109,6 +110,7 @@ public class MainActivity extends AppCompatActivity {
             if(measuring == true){
                 numberOfSamples--;
                 if(numberOfSamples == 0) {
+                    //TODO: penso che qui ci vada un "measuring == false"
                     stopScan();
                 }
             }
