@@ -2,8 +2,10 @@ package com.project.mps.wifitracker;
 
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.Intent;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.net.Uri;
 import android.util.Log;
 import java.util.UUID;
 
@@ -13,6 +15,9 @@ import java.util.UUID;
 public class DbManager extends SQLiteOpenHelper {
     public static final int DATABASE_VERSION = 1;
     public static final String DATABASE_NAME = "measures";
+
+    //context
+    private static Context context;
 
     // Contacts table name
     private static final String TABLE_MEASURES = "campioni";
@@ -28,9 +33,10 @@ public class DbManager extends SQLiteOpenHelper {
     private static final String KEY_FREQUENCY = "frequency";
     private static final String KEY_RSSI = "rssi";
 
-    public DbManager(Context context) {
-        super(context, DATABASE_NAME, null, DATABASE_VERSION);
+    public DbManager(Context c) {
+        super(c, DATABASE_NAME, null, DATABASE_VERSION);
         Log.v("DBManager", "constructor");
+        context = c;
     }
 
     @Override
@@ -60,7 +66,7 @@ public class DbManager extends SQLiteOpenHelper {
         onCreate(db);
     }
 
-    public void store (Measurement measureList) {
+    public void store(Measurement measureList) {
         Log.v("DBManager", "store");
 
         SQLiteDatabase db = this.getWritableDatabase();
@@ -80,6 +86,20 @@ public class DbManager extends SQLiteOpenHelper {
         }
 
         db.close();
+    }
+
+    public String getDbName() {
+        return DATABASE_NAME;
+    }
+
+    //TODO: this is out of activity implementation doesn't work for the moment
+    public void sendDb() {
+        Log.v("SEND_DB", "start");
+        Intent i = new Intent(Intent.ACTION_SEND);
+        i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        i.putExtra(Intent.EXTRA_STREAM, context.getDatabasePath(DATABASE_NAME));
+        i.setType("application//octet-stream");
+        context.startActivity(Intent.createChooser(i, "Export DB"));
     }
 
 }

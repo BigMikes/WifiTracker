@@ -26,12 +26,16 @@ public class MainActivity extends AppCompatActivity {
     private Timer timerTask;
     private boolean measuring;
     private int numberOfSamples;
+    private DbManager dbm;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        //database
+        dbm = new DbManager(getApplicationContext());
 
         measuring = false;
         numberOfSamples = 10;
@@ -50,6 +54,8 @@ public class MainActivity extends AppCompatActivity {
         btSave.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                Log.v("BUTTON HANDLER", "start");
+                sendDB();
                 scanWifi();
             }
         });
@@ -83,6 +89,17 @@ public class MainActivity extends AppCompatActivity {
         timerTask.cancel();
         timerTask.purge();
         timerTask = null;
+    }
+
+    //TODO: for the moment doesn't work since the db is empty remember to test when full
+    public void sendDB() {
+        Log.v("SEND_DB", "start");
+        Intent i = new Intent(Intent.ACTION_SEND);
+        i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        Log.v("SEND_DB", "db: " + getDatabasePath(dbm.getDbName()));
+        i.putExtra(Intent.EXTRA_STREAM, getDatabasePath("measures"));
+        i.setType("application//octet-stream");
+        startActivity(Intent.createChooser(i, "Export DB"));
     }
 
     class WifiReceiver extends BroadcastReceiver
