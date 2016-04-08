@@ -1,5 +1,6 @@
 package com.project.mps.wifitracker;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -66,5 +67,12 @@ public class Measurement {
             i++;
         }
         return result;
+    }
+
+    public void addSample(WifiInfo toAdd){
+        if(Samples == null){
+            Samples = new ArrayList<WifiInfo>();
+        }
+        Samples.add(toAdd);
     }
 }

@@ -11,6 +11,8 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import java.util.List;
@@ -27,6 +29,8 @@ public class MainActivity extends AppCompatActivity {
     private boolean measuring;
     private int numberOfSamples;
     private DbManager dbm;
+    private Measurement measurement;
+    private ProgressBar mProgress;
 
 
     @Override
@@ -37,10 +41,12 @@ public class MainActivity extends AppCompatActivity {
         //initialization
         dbm = new DbManager(getApplicationContext());
         measuring = false;
-        numberOfSamples = 10;
+        numberOfSamples = 0;
+        measurement = null;
         WifiManager = (WifiManager)getSystemService(Context.WIFI_SERVICE);
         WifiRec = new WifiReceiver();
-
+        mProgress = (ProgressBar) findViewById(R.id.progressBar);
+        mProgress.setProgress(0);
 
         registerReceiver(WifiRec, new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));
         //If the wifi is turned off, it will be activated
@@ -52,11 +58,19 @@ public class MainActivity extends AppCompatActivity {
 
         //Set the listener for the start measuring button
 
-        Button btSave = (Button) findViewById(R.id.button_start);
-        btSave.setOnClickListener(new View.OnClickListener() {
+        Button btStart = (Button) findViewById(R.id.button_start);
+        btStart.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 Log.v("BUTTON HANDLER", "start");
+                EditText building = (EditText) findViewById(R.id.input_building);
+                EditText floor = (EditText) findViewById(R.id.input_floor);
+                EditText room = (EditText) findViewById(R.id.input_room);
+                EditText nSamples = (EditText) findViewById(R.id.input_num_samp);
+                numberOfSamples = Integer.parseInt(nSamples.getText().toString());
+                //TODO: controllare input utente
+                measurement = new Measurement(building.getText().toString(), floor.getText().toString(), room.getText().toString(),null);
+                mProgress.setMax(numberOfSamples);
                 scanWifi();
             }
         });
@@ -90,6 +104,14 @@ public class MainActivity extends AppCompatActivity {
         timerTask.cancel();
         timerTask.purge();
         timerTask = null;
+        //TODO: prendere i dati e salvarli nel database
+        dbm.store(measurement);
+        String[] result = measurement.print();
+        for(String i : result){
+            Log.i(TAG, i);
+        }
+        mProgress.setProgress(0);
+        measurement = null;
     }
 
     //TODO: for the moment doesn't work since the db is empty remember to test when full
@@ -105,29 +127,36 @@ public class MainActivity extends AppCompatActivity {
 
     class WifiReceiver extends BroadcastReceiver
     {
+
         public void onReceive(Context c, Intent intent)
         {
-            if(measuring == true){
+            if(measuring == true) {
                 numberOfSamples--;
-                if(numberOfSamples == 0) {
-                    //TODO: penso che qui ci vada un "measuring == false"
+                Long tsLong = System.currentTimeMillis() / 1000;
+                String ts = tsLong.toString();
+                String info = "";
+                List<ScanResult> results;
+                results = WifiManager.getScanResults();
+                Log.i(TAG, "Sample: " + numberOfSamples + " TIME: " + ts + " SCAN: \n");
+                for (int i = 0; i < results.size(); i++) {
+                    /*------------------------------------DEBUG-------------------------------*/
+                    info += "BSSID: " + results.get(i).BSSID + " SSID: " + results.get(i).SSID + " Level: "
+                            + results.get(i).level + " Frequency: " + results.get(i).frequency;
+                    Log.i(TAG, info);
+                    info = "";
+                    /*------------------------------------------------------------------------*/
+                    Integer freq = results.get(i).frequency;
+                    Integer level = results.get(i).level;
+                    WifiInfo toAdd = new WifiInfo(results.get(i).BSSID, results.get(i).SSID, freq.toString(), level.toString());
+                    measurement.addSample(toAdd);
+                    mProgress.setProgress(mProgress.getMax() - numberOfSamples);
+                }
+                Log.i(TAG, "END");
+                if (numberOfSamples == 0) {
+                    //TODO: penso che qui ci vada un "measuring == false" (Giulio: è dentro la funzione)
                     stopScan();
                 }
             }
-            Long tsLong = System.currentTimeMillis()/1000;
-            String ts = tsLong.toString();
-            String info = "";
-            List<ScanResult> results;
-            results = WifiManager.getScanResults();
-            Log.i(TAG, "Sample: " + numberOfSamples + " TIME: " + ts + " SCAN: \n");
-            for(int i = 0; i < results.size(); i++){
-                info += "BSSID: " + results.get(i).BSSID + " SSID: " + results.get(i).SSID + " Level: "
-                        + results.get(i).level + " Frequency: "  + results.get(i).frequency;
-                Log.i(TAG, info);
-                info = "";
-            }
-            Log.i(TAG, "END");
-
         }
     }
 }
