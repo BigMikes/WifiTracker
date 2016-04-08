@@ -70,7 +70,6 @@ public class MainActivity extends AppCompatActivity {
                 EditText nSamples = (EditText) findViewById(R.id.input_num_samp);
                 //TODO: aggiungere controllo che non fa partire niente se i campi non sosno pieni altrimenti da errori strani
                 numberOfSamples = Integer.parseInt(nSamples.getText().toString());
-                //TODO: controllare input utente
                 measurement = new Measurement(building.getText().toString(), floor.getText().toString(), room.getText().toString(),null);
                 mProgress.setMax(numberOfSamples);
                 scanWifi();
@@ -116,11 +115,11 @@ public class MainActivity extends AppCompatActivity {
         timerTask.purge();
         timerTask = null;
         //TODO: prendere i dati e salvarli nel database
-        dbm.store(measurement);
+        /*dbm.store(measurement);
         String[] result = measurement.print();
         for(String i : result){
             Log.i(TAG, i);
-        }
+        }*/
         mProgress.setProgress(0);
         measurement = null;
     }
@@ -164,6 +163,8 @@ public class MainActivity extends AppCompatActivity {
                     measurement.addSample(toAdd);
                     mProgress.setProgress(mProgress.getMax() - numberOfSamples);
                 }
+                dbm.store(measurement);
+                measurement.deleteSamples();
                 Log.i(TAG, "END");
                 if (numberOfSamples == 0) {
                     stopScan();
