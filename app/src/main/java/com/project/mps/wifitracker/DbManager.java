@@ -3,6 +3,8 @@ package com.project.mps.wifitracker;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
+import android.database.Cursor;
+import android.database.DatabaseUtils;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
@@ -69,11 +71,13 @@ public class DbManager extends SQLiteOpenHelper {
     public void store(Measurement measureList) {
         Log.v("DBManager", "store");
 
+        String measureId = UUID.randomUUID().toString();
+
         SQLiteDatabase db = this.getWritableDatabase();
 
         for(WifiInfo wf : measureList.getSamples()) {
             ContentValues values = new ContentValues();
-            values.put(KEY_ID_MEASURE, UUID.randomUUID().toString());
+            values.put(KEY_ID_MEASURE, measureId);
             values.put(KEY_EDIFICIO, measureList.getBuilding());
             values.put(KEY_PIANO, measureList.getFloor());
             values.put(KEY_AULA, measureList.getRoom());
@@ -90,6 +94,18 @@ public class DbManager extends SQLiteOpenHelper {
 
     public String getDbName() {
         return DATABASE_NAME;
+    }
+
+    public void printDb() {
+        SQLiteDatabase db = this.getReadableDatabase();
+
+        Cursor c = db.rawQuery("SELECT * FROM " + TABLE_MEASURES, null);
+        try {
+            Log.v("PrintDB", DatabaseUtils.dumpCursorToString(c));
+        } finally {
+            c.close();
+        }
+        db.close();
     }
 
     //TODO: this is out of activity implementation doesn't work for the moment

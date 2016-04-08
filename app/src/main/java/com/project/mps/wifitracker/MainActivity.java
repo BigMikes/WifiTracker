@@ -4,6 +4,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.net.Uri;
 import android.net.wifi.ScanResult;
 import android.net.wifi.WifiManager;
 import android.support.v7.app.AppCompatActivity;
@@ -67,6 +68,7 @@ public class MainActivity extends AppCompatActivity {
                 EditText floor = (EditText) findViewById(R.id.input_floor);
                 EditText room = (EditText) findViewById(R.id.input_room);
                 EditText nSamples = (EditText) findViewById(R.id.input_num_samp);
+                //TODO: aggiungere controllo che non fa partire niente se i campi non sosno pieni altrimenti da errori strani
                 numberOfSamples = Integer.parseInt(nSamples.getText().toString());
                 //TODO: controllare input utente
                 measurement = new Measurement(building.getText().toString(), floor.getText().toString(), room.getText().toString(),null);
@@ -79,6 +81,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 Log.v("BUTTON HANDLER", "export");
+                dbm.printDb();
                 sendDB();
             }
         });
@@ -125,10 +128,12 @@ public class MainActivity extends AppCompatActivity {
     //TODO: for the moment doesn't work since the db is empty remember to test when full
     public void sendDB() {
         Log.v("SEND_DB", "start");
+
+        Log.v("SEND_DB", "send database");
         Intent i = new Intent(Intent.ACTION_SEND);
         i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         Log.v("SEND_DB", "db: " + getDatabasePath(dbm.getDbName()));
-        i.putExtra(Intent.EXTRA_STREAM, getDatabasePath("measures"));
+        i.putExtra(Intent.EXTRA_STREAM, Uri.fromFile(getDatabasePath(dbm.getDbName())));
         i.setType("application//octet-stream");
         startActivity(Intent.createChooser(i, "Export DB"));
     }
@@ -138,7 +143,7 @@ public class MainActivity extends AppCompatActivity {
 
         public void onReceive(Context c, Intent intent)
         {
-            if(measuring == true) {
+            if(measuring) {
                 numberOfSamples--;
                 Long tsLong = System.currentTimeMillis() / 1000;
                 String ts = tsLong.toString();
@@ -161,7 +166,6 @@ public class MainActivity extends AppCompatActivity {
                 }
                 Log.i(TAG, "END");
                 if (numberOfSamples == 0) {
-                    //TODO: penso che qui ci vada un "measuring == false" (Giulio: è dentro la funzione)
                     stopScan();
                 }
             }
