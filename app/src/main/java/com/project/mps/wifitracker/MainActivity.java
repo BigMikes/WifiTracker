@@ -74,6 +74,14 @@ public class MainActivity extends AppCompatActivity {
                 scanWifi();
             }
         });
+        Button btExport = (Button) findViewById(R.id.button_export);
+        btExport.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Log.v("BUTTON HANDLER", "export");
+                sendDB();
+            }
+        });
     }
 
     @Override
