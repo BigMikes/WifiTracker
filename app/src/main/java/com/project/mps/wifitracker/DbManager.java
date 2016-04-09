@@ -9,6 +9,10 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
 import android.util.Log;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.StringTokenizer;
 import java.util.UUID;
 
 /**
@@ -101,11 +105,49 @@ public class DbManager extends SQLiteOpenHelper {
 
         Cursor c = db.rawQuery("SELECT * FROM " + TABLE_MEASURES, null);
         try {
-            Log.v("PrintDB", DatabaseUtils.dumpCursorToString(c));
+            Log.v("LogDb", DatabaseUtils.dumpCursorToString(c));
         } finally {
             c.close();
         }
         db.close();
     }
 
+    //TODO: ine function to return db and one to get list on building and one for mac of each buldings
+    public ArrayList<String> getBuildings() {
+        Log.v("getBuildings", "start");
+        SQLiteDatabase db = this.getReadableDatabase();
+        ArrayList<String> building = new ArrayList<String>();
+
+        Cursor c = db.query(true, TABLE_MEASURES, new String[]{KEY_EDIFICIO}, null, null, null, null, null, null);
+        Log.v("getBuildings", DatabaseUtils.dumpCursorToString(c));
+        try{
+            while(c.moveToNext()) {
+                building.add(c.getString(c.getColumnIndex(KEY_EDIFICIO)));
+            }
+        } finally {
+            c.close();
+        }
+        db.close();
+        Log.v("getBuildings", building.toString());
+        return building;
+    }
+
+    public ArrayList<String> getBssid(String building) {
+        Log.v("getBssid", "start");
+        SQLiteDatabase db = this.getReadableDatabase();
+        ArrayList<String> macList = new ArrayList<String>();
+
+        Cursor c = db.query(true, TABLE_MEASURES, new String[]{KEY_BSSID}, KEY_EDIFICIO +" = ?", new String[]{building}, null, null, null, null, null);
+        Log.v("getBssid", DatabaseUtils.dumpCursorToString(c));
+        try{
+            while(c.moveToNext()) {
+                macList.add(c.getString(c.getColumnIndex(KEY_BSSID)));
+            }
+        } finally {
+            c.close();
+        }
+        db.close();
+        Log.v("getBssid", macList.toString());
+        return macList;
+    }
 }
