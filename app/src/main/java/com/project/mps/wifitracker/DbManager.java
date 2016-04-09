@@ -150,4 +150,16 @@ public class DbManager extends SQLiteOpenHelper {
         Log.v("getBssid", macList.toString());
         return macList;
     }
+
+    public int getNumberOfBuildings() {
+        Log.v("getNumberOfBuildings", "start");
+        SQLiteDatabase db = this.getReadableDatabase();
+
+        Cursor c = db.query(true, TABLE_MEASURES, new String[]{KEY_EDIFICIO}, null, null, null, null, null, null, null);
+        int result = c.getCount();
+        c.close();
+        db.close();
+        Log.v("getNumberOfBuildings", Integer.toString(result));
+        return result;
+    }
 }
