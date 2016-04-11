@@ -82,6 +82,7 @@ public class MainActivity extends AppCompatActivity {
                 Log.v("BUTTON HANDLER", "export");
                 dbm.LogDb();
                 sendDB();
+                dbm.exportDb();
             }
         });
     }

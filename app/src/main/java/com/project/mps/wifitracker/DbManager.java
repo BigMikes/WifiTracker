@@ -8,8 +8,13 @@ import android.database.DatabaseUtils;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
+import android.os.Environment;
 import android.util.Log;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.StringTokenizer;
@@ -161,5 +166,34 @@ public class DbManager extends SQLiteOpenHelper {
         db.close();
         Log.v("getNumberOfBuildings", Integer.toString(result));
         return result;
+    }
+
+    public void exportDb(){
+        Log.v("exportDb","START");
+        try {
+            File sd = Environment.getExternalStorageDirectory();
+            Log.v("exportDb","sd: " + sd);
+            File data = Environment.getDataDirectory();
+            Log.v("exportDb","data: " + data.getPath());
+
+            if (sd.canWrite()) {
+                //String currentDBPath = "//data//{package name}//databases//{database name}";
+                String currentDBPath = context.getDatabasePath(DATABASE_NAME).getPath();
+                Log.v("exportDb","currentDBPath: " + currentDBPath);
+                String backupDBPath = "BackupDB.db";
+                File currentDB = new File(data, currentDBPath + ".db");
+                File backupDB = new File(sd + "/wifitrack", backupDBPath);
+
+                if (currentDB.exists()) {
+                    FileChannel src = new FileInputStream(currentDB).getChannel();
+                    FileChannel dst = new FileOutputStream(backupDB).getChannel();
+                    dst.transferFrom(src, 0, src.size());
+                    src.close();
+                    dst.close();
+                }
+            }
+        } catch (Exception e) {
+            Log.v("ERROR", e.toString());
+        }
     }
 }
