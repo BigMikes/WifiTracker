@@ -171,19 +171,31 @@ public class DbManager extends SQLiteOpenHelper {
     public void exportDb(){
         Log.v("exportDb","START");
         try {
-            File sd = Environment.getExternalStorageDirectory();
+            File sd = new File(context.getExternalFilesDir(Environment.getExternalStorageDirectory().getPath()),"WiFi_Tracker");
+            if(!sd.exists()){
+                if (!sd.mkdirs()) {
+                    Log.e("exportDb", "Directory not created");
+                }
+            }
             Log.v("exportDb","sd: " + sd);
             File data = Environment.getDataDirectory();
             Log.v("exportDb","data: " + data.getPath());
 
             if (sd.canWrite()) {
-                //String currentDBPath = "//data//{package name}//databases//{database name}";
-                String currentDBPath = context.getDatabasePath(DATABASE_NAME).getPath();
+                String currentDBPath = "//data//com.project.mps.wifitracker//databases//measures";
+                //String currentDBPath = context.getDatabasePath(DATABASE_NAME).getPath();
                 Log.v("exportDb","currentDBPath: " + currentDBPath);
-                String backupDBPath = "BackupDB.db";
-                File currentDB = new File(data, currentDBPath + ".db");
-                File backupDB = new File(sd + "/wifitrack", backupDBPath);
-
+                String backupDBPath = "BackupDB";
+                File currentDB = new File(data, currentDBPath);
+                File backupDB = new File(sd, backupDBPath);
+                if(!backupDB.exists()) {
+                    if (!backupDB.createNewFile()) {
+                        Log.e("exportDb", "File not created");
+                    }
+                }
+                else{
+                    backupDB.delete();
+                }
                 if (currentDB.exists()) {
                     FileChannel src = new FileInputStream(currentDB).getChannel();
                     FileChannel dst = new FileOutputStream(backupDB).getChannel();
