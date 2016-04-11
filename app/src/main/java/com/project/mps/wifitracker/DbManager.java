@@ -121,7 +121,7 @@ public class DbManager extends SQLiteOpenHelper {
     public ArrayList<String> getBuildings() {
         Log.v("getBuildings", "start");
         SQLiteDatabase db = this.getReadableDatabase();
-        ArrayList<String> building = new ArrayList<String>();
+        ArrayList<String> building = new ArrayList<>();
 
         Cursor c = db.query(true, TABLE_MEASURES, new String[]{KEY_EDIFICIO}, null, null, null, null, null, null);
         Log.v("getBuildings", DatabaseUtils.dumpCursorToString(c));
@@ -140,7 +140,7 @@ public class DbManager extends SQLiteOpenHelper {
     public ArrayList<String> getBssid(String building) {
         Log.v("getBssid", "start");
         SQLiteDatabase db = this.getReadableDatabase();
-        ArrayList<String> macList = new ArrayList<String>();
+        ArrayList<String> macList = new ArrayList<>();
 
         Cursor c = db.query(true, TABLE_MEASURES, new String[]{KEY_BSSID}, KEY_EDIFICIO +" = ?", new String[]{building}, null, null, null, null, null);
         Log.v("getBssid", DatabaseUtils.dumpCursorToString(c));
@@ -182,8 +182,8 @@ public class DbManager extends SQLiteOpenHelper {
             Log.v("exportDb","data: " + data.getPath());
 
             if (sd.canWrite()) {
-                String currentDBPath = "//data//com.project.mps.wifitracker//databases//measures";
-                //String currentDBPath = context.getDatabasePath(DATABASE_NAME).getPath();
+                //String currentDBPath = "//data//com.project.mps.wifitracker//databases//measures";
+                String currentDBPath = context.getDatabasePath(DATABASE_NAME).getPath().replace("/data/data", "/data");
                 Log.v("exportDb","currentDBPath: " + currentDBPath);
                 String backupDBPath = "BackupDB";
                 File currentDB = new File(data, currentDBPath);
