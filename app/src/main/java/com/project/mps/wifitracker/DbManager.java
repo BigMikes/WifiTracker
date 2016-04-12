@@ -2,12 +2,10 @@ package com.project.mps.wifitracker;
 
 import android.content.ContentValues;
 import android.content.Context;
-import android.content.Intent;
 import android.database.Cursor;
 import android.database.DatabaseUtils;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-import android.net.Uri;
 import android.os.Environment;
 import android.util.Log;
 
@@ -16,8 +14,6 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
-import java.util.List;
-import java.util.StringTokenizer;
 import java.util.UUID;
 
 /**
