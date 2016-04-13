@@ -75,4 +75,8 @@ public class Measurement {
         }
         Samples.add(toAdd);
     }
+
+    public void deleteSamples() {
+        Samples = null;
+    }
 }

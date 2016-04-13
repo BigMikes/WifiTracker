@@ -4,6 +4,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.net.Uri;
 import android.net.wifi.ScanResult;
 import android.net.wifi.WifiManager;
 import android.support.v7.app.AppCompatActivity;
@@ -88,7 +89,8 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 Log.v("BUTTON HANDLER", "export");
-
+                dbm.LogDb();
+                dbm.exportDb();
             }
         });
 
@@ -148,11 +150,11 @@ public class MainActivity extends AppCompatActivity {
         timerTask.purge();
         timerTask = null;
         //TODO: prendere i dati e salvarli nel database
-        dbm.store(measurement);
+        /*dbm.store(measurement);
         String[] result = measurement.print();
         for(String i : result){
             Log.i(TAG, i);
-        }
+        }*/
         mProgress.setProgress(0);
         measurement = null;
     }
@@ -163,13 +165,14 @@ public class MainActivity extends AppCompatActivity {
 
         public void onReceive(Context c, Intent intent)
         {
-            if(measuring == true) {
+            if(measuring) {
                 numberOfSamples--;
                 Long tsLong = System.currentTimeMillis() / 1000;
                 String ts = tsLong.toString();
                 String info = "";
                 List<ScanResult> results;
                 results = WifiManager.getScanResults();
+
                 Log.i(TAG, "Sample: " + numberOfSamples + " TIME: " + ts + " SCAN: \n");
                 for (int i = 0; i < results.size(); i++) {
                     /*------------------------------------DEBUG-------------------------------*/
@@ -178,15 +181,17 @@ public class MainActivity extends AppCompatActivity {
                     Log.i(TAG, info);
                     info = "";
                     /*------------------------------------------------------------------------*/
+
                     Integer freq = results.get(i).frequency;
                     Integer level = results.get(i).level;
                     WifiInfo toAdd = new WifiInfo(results.get(i).BSSID, results.get(i).SSID, freq.toString(), level.toString());
                     measurement.addSample(toAdd);
                     mProgress.setProgress(mProgress.getMax() - numberOfSamples);
                 }
+                dbm.store(measurement);
+                measurement.deleteSamples();
                 Log.i(TAG, "END");
                 if (numberOfSamples == 0) {
-                    //TODO: penso che qui ci vada un "measuring == false" (Giulio: è dentro la funzione)
                     stopScan();
                 }
             }

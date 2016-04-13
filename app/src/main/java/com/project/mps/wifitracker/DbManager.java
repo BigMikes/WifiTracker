@@ -2,11 +2,18 @@ package com.project.mps.wifitracker;
 
 import android.content.ContentValues;
 import android.content.Context;
-import android.content.Intent;
+import android.database.Cursor;
+import android.database.DatabaseUtils;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-import android.net.Uri;
+import android.os.Environment;
 import android.util.Log;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.nio.channels.FileChannel;
+import java.util.ArrayList;
 import java.util.UUID;
 
 /**
@@ -69,11 +76,13 @@ public class DbManager extends SQLiteOpenHelper {
     public void store(Measurement measureList) {
         Log.v("DBManager", "store");
 
+        String measureId = UUID.randomUUID().toString();
+
         SQLiteDatabase db = this.getWritableDatabase();
 
         for(WifiInfo wf : measureList.getSamples()) {
             ContentValues values = new ContentValues();
-            values.put(KEY_ID_MEASURE, UUID.randomUUID().toString());
+            values.put(KEY_ID_MEASURE, measureId);
             values.put(KEY_EDIFICIO, measureList.getBuilding());
             values.put(KEY_PIANO, measureList.getFloor());
             values.put(KEY_AULA, measureList.getRoom());
@@ -92,14 +101,107 @@ public class DbManager extends SQLiteOpenHelper {
         return DATABASE_NAME;
     }
 
-    //TODO: this is out of activity implementation doesn't work for the moment
-    public void sendDb() {
-        Log.v("SEND_DB", "start");
-        Intent i = new Intent(Intent.ACTION_SEND);
-        i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        i.putExtra(Intent.EXTRA_STREAM, context.getDatabasePath(DATABASE_NAME));
-        i.setType("application//octet-stream");
-        context.startActivity(Intent.createChooser(i, "Export DB"));
+    public void LogDb() {
+        SQLiteDatabase db = this.getReadableDatabase();
+
+        Cursor c = db.rawQuery("SELECT * FROM " + TABLE_MEASURES, null);
+        try {
+            Log.v("LogDb", DatabaseUtils.dumpCursorToString(c));
+        } finally {
+            c.close();
+        }
+        db.close();
     }
 
+    //TODO: ine function to return db and one to get list on building and one for mac of each buldings
+    public ArrayList<String> getBuildings() {
+        Log.v("getBuildings", "start");
+        SQLiteDatabase db = this.getReadableDatabase();
+        ArrayList<String> building = new ArrayList<>();
+
+        Cursor c = db.query(true, TABLE_MEASURES, new String[]{KEY_EDIFICIO}, null, null, null, null, null, null);
+        Log.v("getBuildings", DatabaseUtils.dumpCursorToString(c));
+        try{
+            while(c.moveToNext()) {
+                building.add(c.getString(c.getColumnIndex(KEY_EDIFICIO)));
+            }
+        } finally {
+            c.close();
+        }
+        db.close();
+        Log.v("getBuildings", building.toString());
+        return building;
+    }
+
+    public ArrayList<String> getBssid(String building) {
+        Log.v("getBssid", "start");
+        SQLiteDatabase db = this.getReadableDatabase();
+        ArrayList<String> macList = new ArrayList<>();
+
+        Cursor c = db.query(true, TABLE_MEASURES, new String[]{KEY_BSSID}, KEY_EDIFICIO +" = ?", new String[]{building}, null, null, null, null, null);
+        Log.v("getBssid", DatabaseUtils.dumpCursorToString(c));
+        try{
+            while(c.moveToNext()) {
+                macList.add(c.getString(c.getColumnIndex(KEY_BSSID)));
+            }
+        } finally {
+            c.close();
+        }
+        db.close();
+        Log.v("getBssid", macList.toString());
+        return macList;
+    }
+
+    public int getNumberOfBuildings() {
+        Log.v("getNumberOfBuildings", "start");
+        SQLiteDatabase db = this.getReadableDatabase();
+
+        Cursor c = db.query(true, TABLE_MEASURES, new String[]{KEY_EDIFICIO}, null, null, null, null, null, null, null);
+        int result = c.getCount();
+        c.close();
+        db.close();
+        Log.v("getNumberOfBuildings", Integer.toString(result));
+        return result;
+    }
+
+    public void exportDb(){
+        Log.v("exportDb","START");
+        try {
+            File sd = new File(context.getExternalFilesDir(Environment.getExternalStorageDirectory().getPath()),"WiFi_Tracker");
+            if(!sd.exists()){
+                if (!sd.mkdirs()) {
+                    Log.e("exportDb", "Directory not created");
+                }
+            }
+            Log.v("exportDb","sd: " + sd);
+            File data = Environment.getDataDirectory();
+            Log.v("exportDb","data: " + data.getPath());
+
+            if (sd.canWrite()) {
+                //String currentDBPath = "//data//com.project.mps.wifitracker//databases//measures";
+                String currentDBPath = context.getDatabasePath(DATABASE_NAME).getPath().replace("/data/data", "/data");
+                Log.v("exportDb","currentDBPath: " + currentDBPath);
+                String backupDBPath = "BackupDB";
+                File currentDB = new File(data, currentDBPath);
+                File backupDB = new File(sd, backupDBPath);
+                if(!backupDB.exists()) {
+                    if (!backupDB.createNewFile()) {
+                        Log.e("exportDb", "File not created");
+                    }
+                }
+                else{
+                    backupDB.delete();
+                }
+                if (currentDB.exists()) {
+                    FileChannel src = new FileInputStream(currentDB).getChannel();
+                    FileChannel dst = new FileOutputStream(backupDB).getChannel();
+                    dst.transferFrom(src, 0, src.size());
+                    src.close();
+                    dst.close();
+                }
+            }
+        } catch (Exception e) {
+            Log.v("ERROR", e.toString());
+        }
+    }
 }
