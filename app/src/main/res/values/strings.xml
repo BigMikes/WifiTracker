@@ -5,4 +5,35 @@
     <string name="string_room">Room</string>
     <string name="string_floor">Floor</string>
     <string name="string_building">Building</string>
+    <string-array name="buildings_array">
+        <item>A</item>
+        <item>B</item>
+        <item>C</item>
+        <item>F</item>
+    </string-array>
+    <string-array name="floors_array">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+        <item>4</item>
+    </string-array>
+    <string-array name="rooms_array">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+        <item>4</item>
+        <item>5</item>
+        <item>6</item>
+        <item>7</item>
+        <item>8</item>
+        <item>9</item>
+    </string-array>
+    <string-array name="samples_array">
+        <item>5</item>
+        <item>10</item>
+        <item>15</item>
+        <item>20</item>
+    </string-array>
 </resources>

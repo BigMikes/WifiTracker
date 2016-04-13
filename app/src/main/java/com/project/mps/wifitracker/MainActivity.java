@@ -10,6 +10,8 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
@@ -56,6 +58,12 @@ public class MainActivity extends AppCompatActivity {
             Toast.makeText(this, "Activating Wifi module", Toast.LENGTH_LONG).show();
         }
 
+        //Suggested GUI inputs
+        setInputsAdapters(R.id.input_building,R.array.buildings_array);
+        setInputsAdapters(R.id.input_floor,R.array.floors_array);
+        setInputsAdapters(R.id.input_room,R.array.rooms_array);
+        setInputsAdapters(R.id.input_num_samp,R.array.samples_array);
+
         //Set the listener for the start measuring button
 
         Button btStart = (Button) findViewById(R.id.button_start);
@@ -68,10 +76,11 @@ public class MainActivity extends AppCompatActivity {
                 EditText room = (EditText) findViewById(R.id.input_room);
                 EditText nSamples = (EditText) findViewById(R.id.input_num_samp);
                 numberOfSamples = Integer.parseInt(nSamples.getText().toString());
-                //TODO: controllare input utente
-                measurement = new Measurement(building.getText().toString(), floor.getText().toString(), room.getText().toString(),null);
-                mProgress.setMax(numberOfSamples);
-                scanWifi();
+                boolean ret = createMeasurementObject(building.getText().toString(), floor.getText().toString(), room.getText().toString(),null);
+                if(ret) {
+                    mProgress.setMax(numberOfSamples);
+                    scanWifi();
+                }
             }
         });
         Button btExport = (Button) findViewById(R.id.button_export);
@@ -79,9 +88,35 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 Log.v("BUTTON HANDLER", "export");
-                sendDB();
+
             }
         });
+
+
+    }
+
+    private boolean createMeasurementObject(String building, String floor, String room, List<WifiInfo> list){
+        //Check input values
+        if(building.isEmpty() || floor.isEmpty() || room.isEmpty()){
+            Toast.makeText(this, "Some fields are empty, please fill them", Toast.LENGTH_LONG).show();
+            return false;
+        }
+        measurement = new Measurement(building.toLowerCase(), floor.toLowerCase(), room.toLowerCase(),list);
+        if(measurement == null)
+            return false;
+        return true;
+    }
+
+    private void setInputsAdapters(int autoCompleteText, int strings_array) {
+        // Get a reference to the AutoCompleteTextView in the layout
+        AutoCompleteTextView textView = (AutoCompleteTextView) findViewById(autoCompleteText);
+        // Get the string array
+        String[] strings = getResources().getStringArray(strings_array);
+        // Create the adapter and set it to the AutoCompleteTextView
+        ArrayAdapter<String> adapter =
+                new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, strings);
+        textView.setAdapter(adapter);
+
     }
 
     @Override
@@ -122,16 +157,6 @@ public class MainActivity extends AppCompatActivity {
         measurement = null;
     }
 
-    //TODO: for the moment doesn't work since the db is empty remember to test when full
-    public void sendDB() {
-        Log.v("SEND_DB", "start");
-        Intent i = new Intent(Intent.ACTION_SEND);
-        i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        Log.v("SEND_DB", "db: " + getDatabasePath(dbm.getDbName()));
-        i.putExtra(Intent.EXTRA_STREAM, getDatabasePath("measures"));
-        i.setType("application//octet-stream");
-        startActivity(Intent.createChooser(i, "Export DB"));
-    }
 
     class WifiReceiver extends BroadcastReceiver
     {
