@@ -25,7 +25,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
     private static final String TAG = "MAIN";
     private WifiManager WifiManager;
@@ -61,39 +61,31 @@ public class MainActivity extends AppCompatActivity {
             Toast.makeText(this, "Activating Wifi module", Toast.LENGTH_LONG).show();
         }
 
+
         //Suggested GUI inputs
         setInputsAdapters(R.id.input_building,R.array.buildings_array);
-        setInputsAdapters(R.id.input_floor,R.array.floors_array);
-        setInputsAdapters(R.id.input_room,R.array.rooms_array);
-        setInputsAdapters(R.id.input_num_samp,R.array.samples_array);
+        //adapter doesn't work with less than one character
+        //setInputsAdapters(R.id.input_floor,R.array.floors_array);
+
+        //removed since each building has it's own way to number rooms
+        //setInputsAdapters(R.id.input_room,R.array.rooms_array);
+
+        //setInputsAdapters(R.id.input_num_samp,R.array.samples_array);
 
         //Set the listener for the start measuring button
 
+        //Set on click listener
         Button btStart = (Button) findViewById(R.id.button_start);
-        btStart.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Log.v("BUTTON HANDLER", "start");
-                EditText building = (EditText) findViewById(R.id.input_building);
-                EditText floor = (EditText) findViewById(R.id.input_floor);
-                EditText room = (EditText) findViewById(R.id.input_room);
-                EditText nSamples = (EditText) findViewById(R.id.input_num_samp);
-                boolean ret = createMeasurementObject(building.getText().toString(), floor.getText().toString(), room.getText().toString(), nSamples.getText().toString());
-                if(ret) {
-                    showDialogConfirmation(building.getText().toString(), floor.getText().toString(), room.getText().toString(), nSamples.getText().toString());
-                }
-            }
-        });
         Button btExport = (Button) findViewById(R.id.button_export);
-        btExport.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Log.v("BUTTON HANDLER", "export");
-                dbm.LogDb();
-                dbm.exportDb();
-            }
-        });
-
+        try {
+            assert btStart != null;
+            btStart.setOnClickListener(this);
+            assert btExport != null;
+            btExport.setOnClickListener(this);
+        } catch (AssertionError ae) {
+            Log.v("ASSERTION_ERROR: ", ae.getMessage());
+            Toast.makeText(MainActivity.this, "Button not reachable: ", Toast.LENGTH_SHORT).show();
+        }
 
     }
 
@@ -136,13 +128,14 @@ public class MainActivity extends AppCompatActivity {
 
     private void setInputsAdapters(int autoCompleteText, int strings_array) {
         // Get a reference to the AutoCompleteTextView in the layout
-        AutoCompleteTextView textView = (AutoCompleteTextView) findViewById(autoCompleteText);
+        AutoCompleteTextView autocompleteTextView = (AutoCompleteTextView) findViewById(autoCompleteText);
         // Get the string array
         String[] strings = getResources().getStringArray(strings_array);
         // Create the adapter and set it to the AutoCompleteTextView
-        ArrayAdapter<String> adapter =
-                new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, strings);
-        textView.setAdapter(adapter);
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, strings);
+        assert autocompleteTextView != null;
+        autocompleteTextView.setAdapter(adapter);
+        autocompleteTextView.setThreshold(1);
 
     }
 
@@ -183,6 +176,38 @@ public class MainActivity extends AppCompatActivity {
         }*/
         mProgress.setProgress(0);
         measurement = null;
+    }
+
+    @Override
+    public void onClick(View view) {
+        switch (view.getId()) {
+            case R.id.button_start:
+                Log.v("BUTTON HANDLER: ", "start");
+                EditText building = (EditText) findViewById(R.id.input_building);
+                EditText floor = (EditText) findViewById(R.id.input_floor);
+                EditText room = (EditText) findViewById(R.id.input_room);
+                EditText nSamples = (EditText) findViewById(R.id.input_num_samp);
+                try {
+                    assert nSamples != null;
+                    assert building != null;
+                    assert floor != null;
+                    assert room != null;
+
+                    boolean ret = createMeasurementObject(building.getText().toString(), floor.getText().toString(), room.getText().toString(), nSamples.getText().toString());
+                    if(ret) {
+                        showDialogConfirmation(building.getText().toString(), floor.getText().toString(), room.getText().toString(), nSamples.getText().toString());
+                    }
+                } catch (AssertionError ae) {
+                    Log.v("ASSERTION_ERROR: ", ae.getMessage());
+                    Toast.makeText(MainActivity.this, "Fill every field", Toast.LENGTH_SHORT).show();
+                }
+                break;
+            case R.id.button_export:
+                Log.v("BUTTON HANDLER: ", "export");
+                dbm.LogDb();
+                dbm.exportDb();
+                break;
+        }
     }
 
 

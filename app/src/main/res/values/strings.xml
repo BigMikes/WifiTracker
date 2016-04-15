@@ -6,10 +6,10 @@
     <string name="string_floor">Floor</string>
     <string name="string_building">Building</string>
     <string-array name="buildings_array">
-        <item>A</item>
-        <item>B</item>
-        <item>C</item>
-        <item>F</item>
+        <item>polo a</item>
+        <item>polo b</item>
+        <item>polo c</item>
+        <item>polo f</item>
     </string-array>
     <string-array name="floors_array">
         <item>0</item>
