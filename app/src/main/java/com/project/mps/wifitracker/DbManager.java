@@ -179,7 +179,7 @@ public class DbManager extends SQLiteOpenHelper {
 
             if (sd.canWrite()) {
                 //String currentDBPath = "//data//com.project.mps.wifitracker//databases//measures";
-                String currentDBPath = context.getDatabasePath(DATABASE_NAME).getPath().replace("/data/data", "/data");
+                String currentDBPath = getDbPath();
                 Log.v("exportDb","currentDBPath: " + currentDBPath);
                 String backupDBPath = "BackupDB";
                 File currentDB = new File(data, currentDBPath);
@@ -203,5 +203,9 @@ public class DbManager extends SQLiteOpenHelper {
         } catch (Exception e) {
             Log.v("ERROR", e.toString());
         }
+    }
+
+    public static String getDbPath() {
+        return context.getDatabasePath(DATABASE_NAME).getPath().replace("/data/data", "/data");
     }
 }

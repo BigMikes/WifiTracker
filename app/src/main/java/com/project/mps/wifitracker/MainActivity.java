@@ -59,11 +59,16 @@ public class MainActivity extends AppCompatActivity {
             Toast.makeText(this, "Activating Wifi module", Toast.LENGTH_LONG).show();
         }
 
+
         //Suggested GUI inputs
         setInputsAdapters(R.id.input_building,R.array.buildings_array);
-        setInputsAdapters(R.id.input_floor,R.array.floors_array);
-        setInputsAdapters(R.id.input_room,R.array.rooms_array);
-        setInputsAdapters(R.id.input_num_samp,R.array.samples_array);
+        //adapter doesn't work with less than one character
+        //setInputsAdapters(R.id.input_floor,R.array.floors_array);
+
+        //removed since each building has it's own way to number rooms
+        //setInputsAdapters(R.id.input_room,R.array.rooms_array);
+
+        //setInputsAdapters(R.id.input_num_samp,R.array.samples_array);
 
         //Set the listener for the start measuring button
 
@@ -111,13 +116,14 @@ public class MainActivity extends AppCompatActivity {
 
     private void setInputsAdapters(int autoCompleteText, int strings_array) {
         // Get a reference to the AutoCompleteTextView in the layout
-        AutoCompleteTextView textView = (AutoCompleteTextView) findViewById(autoCompleteText);
+        AutoCompleteTextView autocompleteTextView = (AutoCompleteTextView) findViewById(autoCompleteText);
         // Get the string array
         String[] strings = getResources().getStringArray(strings_array);
         // Create the adapter and set it to the AutoCompleteTextView
-        ArrayAdapter<String> adapter =
-                new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, strings);
-        textView.setAdapter(adapter);
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, strings);
+        assert autocompleteTextView != null;
+        autocompleteTextView.setAdapter(adapter);
+        autocompleteTextView.setThreshold(1);
 
     }
 
