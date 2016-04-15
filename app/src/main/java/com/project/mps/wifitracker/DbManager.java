@@ -167,7 +167,8 @@ public class DbManager extends SQLiteOpenHelper {
     public void exportDb(){
         Log.v("exportDb","START");
         try {
-            File sd = new File(context.getExternalFilesDir(Environment.getExternalStorageDirectory().getPath()),"WiFi_Tracker");
+            String root = Environment.getExternalStorageDirectory().toString();
+            File sd = new File(root + "/WiFi Tracker");
             if(!sd.exists()){
                 if (!sd.mkdirs()) {
                     Log.e("exportDb", "Directory not created");
@@ -203,6 +204,7 @@ public class DbManager extends SQLiteOpenHelper {
         } catch (Exception e) {
             Log.v("ERROR", e.toString());
         }
+
     }
 
     public static String getDbPath() {
