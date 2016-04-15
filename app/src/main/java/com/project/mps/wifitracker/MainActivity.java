@@ -23,7 +23,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
     private static final String TAG = "MAIN";
     private WifiManager WifiManager;
@@ -72,33 +72,18 @@ public class MainActivity extends AppCompatActivity {
 
         //Set the listener for the start measuring button
 
+        //Set on click listener
         Button btStart = (Button) findViewById(R.id.button_start);
-        btStart.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Log.v("BUTTON HANDLER", "start");
-                EditText building = (EditText) findViewById(R.id.input_building);
-                EditText floor = (EditText) findViewById(R.id.input_floor);
-                EditText room = (EditText) findViewById(R.id.input_room);
-                EditText nSamples = (EditText) findViewById(R.id.input_num_samp);
-                numberOfSamples = Integer.parseInt(nSamples.getText().toString());
-                boolean ret = createMeasurementObject(building.getText().toString(), floor.getText().toString(), room.getText().toString(),null);
-                if(ret) {
-                    mProgress.setMax(numberOfSamples);
-                    scanWifi();
-                }
-            }
-        });
         Button btExport = (Button) findViewById(R.id.button_export);
-        btExport.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Log.v("BUTTON HANDLER", "export");
-                dbm.LogDb();
-                dbm.exportDb();
-            }
-        });
-
+        try {
+            assert btStart != null;
+            btStart.setOnClickListener(this);
+            assert btExport != null;
+            btExport.setOnClickListener(this);
+        } catch (AssertionError ae) {
+            Log.v("ASSERTION_ERROR: ", ae.getMessage());
+            Toast.makeText(MainActivity.this, "Button not reachable: ", Toast.LENGTH_SHORT).show();
+        }
 
     }
 
@@ -163,6 +148,40 @@ public class MainActivity extends AppCompatActivity {
         }*/
         mProgress.setProgress(0);
         measurement = null;
+    }
+
+    @Override
+    public void onClick(View view) {
+        switch (view.getId()) {
+            case R.id.button_start:
+                Log.v("BUTTON HANDLER: ", "start");
+                EditText building = (EditText) findViewById(R.id.input_building);
+                EditText floor = (EditText) findViewById(R.id.input_floor);
+                EditText room = (EditText) findViewById(R.id.input_room);
+                EditText nSamples = (EditText) findViewById(R.id.input_num_samp);
+                try {
+                    assert nSamples != null;
+                    assert building != null;
+                    assert floor != null;
+                    assert room != null;
+
+                    numberOfSamples = Integer.parseInt(nSamples.getText().toString());
+                    boolean ret = createMeasurementObject(building.getText().toString(), floor.getText().toString(), room.getText().toString(), null);
+                    if (ret) {
+                        mProgress.setMax(numberOfSamples);
+                        scanWifi();
+                    }
+                } catch (AssertionError ae) {
+                    Log.v("ASSERTION_ERROR: ", ae.getMessage());
+                    Toast.makeText(MainActivity.this, "Fill every field", Toast.LENGTH_SHORT).show();
+                }
+                break;
+            case R.id.button_export:
+                Log.v("BUTTON HANDLER: ", "export");
+                dbm.LogDb();
+                dbm.exportDb();
+                break;
+        }
     }
 
 
