@@ -136,7 +136,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         assert autocompleteTextView != null;
         autocompleteTextView.setAdapter(adapter);
         autocompleteTextView.setThreshold(1);
-
     }
 
     @Override
