@@ -2,11 +2,13 @@ package com.project.mps.wifitracker;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.Uri;
 import android.net.wifi.ScanResult;
 import android.net.wifi.WifiManager;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -76,11 +78,9 @@ public class MainActivity extends AppCompatActivity {
                 EditText floor = (EditText) findViewById(R.id.input_floor);
                 EditText room = (EditText) findViewById(R.id.input_room);
                 EditText nSamples = (EditText) findViewById(R.id.input_num_samp);
-                numberOfSamples = Integer.parseInt(nSamples.getText().toString());
-                boolean ret = createMeasurementObject(building.getText().toString(), floor.getText().toString(), room.getText().toString(),null);
+                boolean ret = createMeasurementObject(building.getText().toString(), floor.getText().toString(), room.getText().toString(), nSamples.getText().toString());
                 if(ret) {
-                    mProgress.setMax(numberOfSamples);
-                    scanWifi();
+                    showDialogConfirmation(building.getText().toString(), floor.getText().toString(), room.getText().toString(), nSamples.getText().toString());
                 }
             }
         });
@@ -97,13 +97,38 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    private boolean createMeasurementObject(String building, String floor, String room, List<WifiInfo> list){
+    private void showDialogConfirmation(String building, String floor, String room, String nSamples) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        String toShow = "Bulding: " + building +
+                "\nFloor: " + floor +
+                "\nRoom: " + room +
+                "\nNumber of samples: " + nSamples +
+                "\nIs it correct?";
+        builder.setMessage(toShow);
+        builder.setTitle("Confirmation");
+        builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id) {
+                scanWifi();
+            }
+        });
+        builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id) {
+                //Do nothing
+            }
+        });
+        AlertDialog dialog = builder.create();
+        dialog.show();
+    }
+
+
+    private boolean createMeasurementObject(String building, String floor, String room, String nSamples){
         //Check input values
-        if(building.isEmpty() || floor.isEmpty() || room.isEmpty()){
+        if(building.isEmpty() || floor.isEmpty() || room.isEmpty() || nSamples.isEmpty()){
             Toast.makeText(this, "Some fields are empty, please fill them", Toast.LENGTH_LONG).show();
             return false;
         }
-        measurement = new Measurement(building.toLowerCase(), floor.toLowerCase(), room.toLowerCase(),list);
+        numberOfSamples = Integer.parseInt(nSamples);
+        measurement = new Measurement(building.toLowerCase(), floor.toLowerCase(), room.toLowerCase(),null);
         if(measurement == null)
             return false;
         return true;
@@ -134,6 +159,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void scanWifi(){
+        mProgress.setMax(numberOfSamples);
         measuring = true;
         timerTask = new Timer();
         timerTask.scheduleAtFixedRate(new TimerTask() {
