@@ -83,9 +83,9 @@ public class DbManager extends SQLiteOpenHelper {
         for(WifiInfo wf : measureList.getSamples()) {
             ContentValues values = new ContentValues();
             values.put(KEY_ID_MEASURE, measureId);
-            values.put(KEY_EDIFICIO, measureList.getBuilding());
-            values.put(KEY_PIANO, measureList.getFloor());
-            values.put(KEY_AULA, measureList.getRoom());
+            values.put(KEY_EDIFICIO, measureList.getBuilding().replaceAll(" ", "-"));
+            values.put(KEY_PIANO, measureList.getFloor().replaceAll(" ", "-"));
+            values.put(KEY_AULA, measureList.getRoom().replaceAll(" ", "-"));
             values.put(KEY_BSSID, wf.getBssid());
             values.put(KEY_SSID, wf.getSsid());
             values.put(KEY_FREQUENCY, wf.getFrequency());
