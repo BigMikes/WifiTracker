@@ -12,6 +12,9 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
@@ -91,6 +94,37 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     }
 
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.menu1, menu);
+        return true;
+    }
+
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch(item.getItemId()) {
+            case R.id.export:
+                Log.v("MENU: ", "export");
+                dbm.LogDb();
+                dbm.exportDb();
+                return true;
+            case R.id.send:
+                return true;
+            case R.id.emptyDb:
+                Log.v("MENU: ", "emptyDb");
+                dbm.emptyDb();
+                return true;
+            case R.id.deleteFile:
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
+
+
     private void showDialogConfirmation(String building, String floor, String room, String nSamples) {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         String toShow = "Bulding: " + building +
@@ -128,6 +162,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         return true;
     }
 
+
     private void setInputsAdapters(int autoCompleteText, int strings_array) {
         // Get a reference to the AutoCompleteTextView in the layout
         AutoCompleteTextView autocompleteTextView = (AutoCompleteTextView) findViewById(autoCompleteText);
@@ -140,17 +175,20 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         autocompleteTextView.setThreshold(1);
     }
 
+
     @Override
     protected void onPause() {
         unregisterReceiver(WifiRec);
         super.onPause();
     }
 
+
     @Override
     protected void onResume() {
         registerReceiver(WifiRec, new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));
         super.onResume();
     }
+
 
     public void scanWifi(){
         mProgress.setMax(numberOfSamples);
@@ -163,6 +201,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
         }, 0, 1000);
     }
+
 
     public void stopScan(){
         measuring = false;
@@ -178,6 +217,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mProgress.setProgress(0);
         measurement = null;
     }
+
 
     @Override
     public void onClick(View view) {

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@+id/export"
+        android:title="@string/export_db"/>
+    <item android:id="@+id/send"
+        android:title="@string/send_db"/>
+    <item android:id="@+id/emptyDb"
+        android:title="@string/empty_db"/>
+    <item android:id="@+id/deleteFile"
+        android:title="@string/empty_file"/>
+</menu>

@@ -5,6 +5,10 @@
     <string name="string_room">Room</string>
     <string name="string_floor">Floor</string>
     <string name="string_building">Building</string>
+    <string name="export_db">Export db</string>
+    <string name="send_db">Send db</string>
+    <string name="empty_db">Empty db</string>
+    <string name="empty_file">Empty File</string>
     <string-array name="buildings_array">
         <item>polo a</item>
         <item>polo b</item>
