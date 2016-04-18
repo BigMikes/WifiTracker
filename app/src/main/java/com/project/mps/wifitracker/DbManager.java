@@ -73,7 +73,7 @@ public class DbManager extends SQLiteOpenHelper {
         onCreate(db);
     }
 
-    public void store(Measurement measureList) {
+    public boolean store(Measurement measureList) {
         Log.v("DBManager", "store");
 
         String measureId = UUID.randomUUID().toString();
@@ -91,10 +91,14 @@ public class DbManager extends SQLiteOpenHelper {
             values.put(KEY_FREQUENCY, wf.getFrequency());
             values.put(KEY_RSSI, wf.getRssi());
 
-            db.insert(TABLE_MEASURES, null, values);
+            long temp = db.insert(TABLE_MEASURES, null, values);
+            if(temp == -1) {
+                return false;
+            }
         }
 
         db.close();
+        return true;
     }
 
     public String getDbName() {
@@ -210,4 +214,10 @@ public class DbManager extends SQLiteOpenHelper {
     public static String getDbPath() {
         return context.getDatabasePath(DATABASE_NAME).getPath().replace("/data/data", "/data");
     }
+
+    public void emptyDb() {
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.delete(TABLE_MEASURES, null, null);
+    }
+
 }

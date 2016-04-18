@@ -24,6 +24,8 @@ import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import static android.widget.Toast.LENGTH_SHORT;
+
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
@@ -84,7 +86,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             btExport.setOnClickListener(this);
         } catch (AssertionError ae) {
             Log.v("ASSERTION_ERROR: ", ae.getMessage());
-            Toast.makeText(MainActivity.this, "Button not reachable: ", Toast.LENGTH_SHORT).show();
+            Toast.makeText(MainActivity.this, "Button not reachable: ", LENGTH_SHORT).show();
         }
 
     }
@@ -198,7 +200,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     }
                 } catch (AssertionError ae) {
                     Log.v("ASSERTION_ERROR: ", ae.getMessage());
-                    Toast.makeText(MainActivity.this, "Fill every field", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(MainActivity.this, "Fill every field", LENGTH_SHORT).show();
                 }
                 break;
             case R.id.button_export:
@@ -238,7 +240,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     measurement.addSample(toAdd);
                     mProgress.setProgress(mProgress.getMax() - numberOfSamples);
                 }
-                dbm.store(measurement);
+                if(!dbm.store(measurement)) {
+                    Toast.makeText(MainActivity.this, "Impossible to write on db", Toast.LENGTH_SHORT).show();
+                }
                 measurement.deleteSamples();
                 Log.i(TAG, "END");
                 if (numberOfSamples == 0) {
