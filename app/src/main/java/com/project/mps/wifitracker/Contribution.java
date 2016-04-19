@@ -31,7 +31,7 @@ import static android.widget.Toast.LENGTH_SHORT;
 
 public class Contribution extends AppCompatActivity implements View.OnClickListener {
 
-    private static final String TAG = "MAIN";
+    private static final String TAG = "CONTRIBUTION";
     private WifiManager WifiManager;
     private WifiReceiver WifiRec;
     private Timer timerTask;
