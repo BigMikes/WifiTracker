@@ -1,5 +1,7 @@
 package com.project.mps.wifitracker;
 
+import android.util.Log;
+
 import java.io.BufferedReader;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -13,6 +15,7 @@ import java.util.List;
  * Created by Giulio on 19/04/2016.
  */
 public class SocketClient {
+    private static final String TAG = "SOCKET_CLIENT";
     Socket client;
     String address;
     int port;
@@ -65,12 +68,18 @@ public class SocketClient {
     }
 
     public boolean sendLine(String line){
-        if(output == null || line == null || line.isEmpty())
+        if(line == null || line.isEmpty()){
+            Log.e(TAG, "sendLine: invalid parameters");
             return false;
+        }
+        if(output == null){
+            Log.e(TAG, "sendLine: some problem in the output stream");
+            return false;
+        }
         try {
             output.println(line);
         } catch(Exception e){
-            e.printStackTrace();
+            Log.e(TAG, e.toString());
             return false;
         }
         return true;
@@ -78,8 +87,10 @@ public class SocketClient {
 
     //The data outcoming format will be "Mac1=power1,Mac2=power2,Mac3=power3"
     public boolean sendQuery(List<WifiInfo> samples){
-        if(samples == null || samples.isEmpty())
+        if(samples == null || samples.isEmpty()) {
+            Log.e(TAG, "sendQuery: invalid parameters");
             return false;
+        }
         String toSend = "";
         int count = 0;
         for(WifiInfo entry : samples){

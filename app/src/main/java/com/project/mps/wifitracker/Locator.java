@@ -4,6 +4,8 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.wifi.ScanResult;
 import android.net.wifi.WifiManager;
 import android.support.v7.app.AppCompatActivity;
@@ -23,9 +25,11 @@ public class Locator extends AppCompatActivity implements View.OnClickListener{
     private WifiManager WifiManager;
     private WifiReceiver WifiRec;
     private SocketClient socket;
-    private final String ServerAddress = "IPADDRESS";
-    private final int ServerPort = 8888;
+    private static final String ServerAddress = "192.168.1.16";
+    private static final int ServerPort = 8888;
     private static final String TAG = "Locator";
+    private List<WifiInfo> lastSamples;
+    private boolean onQuerying;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,6 +39,7 @@ public class Locator extends AppCompatActivity implements View.OnClickListener{
         WifiManager = (WifiManager)getSystemService(Context.WIFI_SERVICE);
         WifiRec = new WifiReceiver();
         socket = null;
+        onQuerying = false;
 
         //Check if the wifi model has been turned on
         registerReceiver(WifiRec, new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));
@@ -57,6 +62,20 @@ public class Locator extends AppCompatActivity implements View.OnClickListener{
             Log.v("ASSERTION_ERROR: ", ae.getMessage());
             Toast.makeText(Locator.this, "Button not reachable: ", LENGTH_SHORT).show();
         }
+
+    }
+
+    @Override
+    protected void onPause() {
+        unregisterReceiver(WifiRec);
+        super.onPause();
+    }
+
+
+    @Override
+    protected void onResume() {
+        registerReceiver(WifiRec, new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));
+        super.onResume();
     }
 
     @Override
@@ -64,7 +83,10 @@ public class Locator extends AppCompatActivity implements View.OnClickListener{
         switch (v.getId()) {
             case R.id.query_button:
                 //TODO: per il momento manda un campione solo, ma forse si potrebbero mandare più samples o aggregarli con una media
-                WifiManager.startScan();
+                if(checkInternetConnectivity()) {
+                    onQuerying = true;
+                    WifiManager.startScan();
+                }
                 break;
             case R.id.contribute_button:
                 //Start the new activity for the contribution process
@@ -74,37 +96,74 @@ public class Locator extends AppCompatActivity implements View.OnClickListener{
         }
     }
 
-    private void startQuery() {
+    public boolean checkInternetConnectivity() {
+        ConnectivityManager connMgr = (ConnectivityManager)
+                getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
+        if (networkInfo != null && networkInfo.isConnected()) {
+            return true;
+        } else {
+            Toast.makeText(this, "There is no Internet connectivity, please connect", Toast.LENGTH_SHORT).show();
+            return false;
+        }
+    }
 
+    private String startQuery() {
+        socket = new SocketClient(ServerAddress, ServerPort);
+        if(socket == null) {
+            Log.e(TAG, "Problems creating the socket");
+            return null;
+        }
+        if(!socket.SocketConnect()){
+            Log.e(TAG, "Problems in connecting to the server");
+            return null;
+        }
+        if(!socket.sendQuery(lastSamples)) {
+            Log.e(TAG, "Problems in sending the query to the server");
+            return null ;
+        }
+        String response = socket.readLine();
+        socket.closeSocket();
+        if(response == null) {
+            Log.e(TAG, "Problems in retrieving the response from the server");
+            return null;
+        }
+        return response;
 
     }
 
     class WifiReceiver extends BroadcastReceiver{
 
         public void onReceive(Context c, Intent intent){
+            Log.v(TAG, "BREAK POINT");
             List<ScanResult> results;
             results = WifiManager.getScanResults();
-            List<WifiInfo> samples = new ArrayList<WifiInfo>();
+            lastSamples = new ArrayList<WifiInfo>();
             for(int i = 0; i < results.size(); i++) {
                 Integer freq = results.get(i).frequency;
                 Integer level = results.get(i).level;
                 WifiInfo toAdd = new WifiInfo(results.get(i).BSSID, results.get(i).SSID, freq.toString(), level.toString());
-                samples.add(toAdd);
+                lastSamples.add(toAdd);
             }
-            socket = new SocketClient(ServerAddress, ServerPort);
-            if(socket == null)
-                return;
-            if(!socket.sendQuery(samples))
-                return;
-            String response = socket.readLine();
-            socket.closeSocket();
-            if(response == null) {
-                Log.v(TAG, "Problems in retrieving the response from the server");
-                return;
-            }
-            TextView text = (TextView) findViewById(R.id.text_response);
-            text.setText("You are in: " + response);
+            if(onQuerying)
+                new Thread(new clientThread()).start();
+            onQuerying = false;
+        }
+    }
 
+    class clientThread implements Runnable{
+        @Override
+        public void run(){
+            final String serverResponse = startQuery();
+            //TODO: trovare un modo migliore per aggiornre la gui
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    TextView text = (TextView) findViewById(R.id.text_response);
+                    text.setText("You are in: " + serverResponse);
+
+                }
+            });
         }
     }
 }
