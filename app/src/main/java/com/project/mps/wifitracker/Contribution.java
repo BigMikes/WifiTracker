@@ -213,7 +213,7 @@ public class Contribution extends AppCompatActivity implements View.OnClickListe
         for(String i : result){
             Log.i(TAG, i);
         }*/
-        mProgress.setProgress(0);
+
         measurement = null;
     }
 
