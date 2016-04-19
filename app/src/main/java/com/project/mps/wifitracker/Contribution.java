@@ -5,7 +5,6 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.net.Uri;
 import android.net.wifi.ScanResult;
 import android.net.wifi.WifiManager;
 import android.support.v7.app.AlertDialog;
@@ -30,7 +29,7 @@ import java.util.TimerTask;
 import static android.widget.Toast.LENGTH_SHORT;
 
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener {
+public class Contribution extends AppCompatActivity implements View.OnClickListener {
 
     private static final String TAG = "MAIN";
     private WifiManager WifiManager;
@@ -89,7 +88,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             btExport.setOnClickListener(this);
         } catch (AssertionError ae) {
             Log.v("ASSERTION_ERROR: ", ae.getMessage());
-            Toast.makeText(MainActivity.this, "Button not reachable: ", LENGTH_SHORT).show();
+            Toast.makeText(Contribution.this, "Button not reachable: ", LENGTH_SHORT).show();
         }
 
     }
@@ -240,7 +239,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     }
                 } catch (AssertionError ae) {
                     Log.v("ASSERTION_ERROR: ", ae.getMessage());
-                    Toast.makeText(MainActivity.this, "Fill every field", LENGTH_SHORT).show();
+                    Toast.makeText(Contribution.this, "Fill every field", LENGTH_SHORT).show();
                 }
                 break;
             case R.id.button_export:
@@ -281,7 +280,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     mProgress.setProgress(mProgress.getMax() - numberOfSamples);
                 }
                 if(!dbm.store(measurement)) {
-                    Toast.makeText(MainActivity.this, "Impossible to write on db", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(Contribution.this, "Impossible to write on db", Toast.LENGTH_SHORT).show();
                 }
                 measurement.deleteSamples();
                 Log.i(TAG, "END");
