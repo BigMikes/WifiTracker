@@ -186,7 +186,7 @@ public class DbManager extends SQLiteOpenHelper {
                 //String currentDBPath = "//data//com.project.mps.wifitracker//databases//measures";
                 String currentDBPath = getDbPath();
                 Log.v("exportDb","currentDBPath: " + currentDBPath);
-                String backupDBPath = "BackupDB";
+                String backupDBPath = "BackupDB.db";
                 File currentDB = new File(data, currentDBPath);
                 File backupDB = new File(sd, backupDBPath);
                 if(!backupDB.exists()) {

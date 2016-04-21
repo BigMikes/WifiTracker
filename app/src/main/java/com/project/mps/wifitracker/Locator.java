@@ -8,6 +8,7 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.wifi.ScanResult;
 import android.net.wifi.WifiManager;
+import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -25,7 +26,7 @@ public class Locator extends AppCompatActivity implements View.OnClickListener{
     private WifiManager WifiManager;
     private WifiReceiver WifiRec;
     private SocketClient socket;
-    private static final String ServerAddress = "192.168.1.16";
+    private static final String ServerAddress = "192.168.1.20";
     private static final int ServerPort = 8888;
     private static final String TAG = "Locator";
     private List<WifiInfo> lastSamples;
@@ -108,29 +109,6 @@ public class Locator extends AppCompatActivity implements View.OnClickListener{
         }
     }
 
-    private String startQuery() {
-        socket = new SocketClient(ServerAddress, ServerPort);
-        if(socket == null) {
-            Log.e(TAG, "Problems creating the socket");
-            return null;
-        }
-        if(!socket.SocketConnect()){
-            Log.e(TAG, "Problems in connecting to the server");
-            return null;
-        }
-        if(!socket.sendQuery(lastSamples)) {
-            Log.e(TAG, "Problems in sending the query to the server");
-            return null ;
-        }
-        String response = socket.readLine();
-        socket.closeSocket();
-        if(response == null) {
-            Log.e(TAG, "Problems in retrieving the response from the server");
-            return null;
-        }
-        return response;
-
-    }
 
     class WifiReceiver extends BroadcastReceiver{
 
@@ -146,24 +124,41 @@ public class Locator extends AppCompatActivity implements View.OnClickListener{
                 lastSamples.add(toAdd);
             }
             if(onQuerying)
-                new Thread(new clientThread()).start();
+                new AsyncQuery().execute(lastSamples);
             onQuerying = false;
         }
     }
 
-    class clientThread implements Runnable{
-        @Override
-        public void run(){
-            final String serverResponse = startQuery();
-            //TODO: trovare un modo migliore per aggiornre la gui
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    TextView text = (TextView) findViewById(R.id.text_response);
-                    text.setText("You are in: " + serverResponse);
+    private class AsyncQuery extends AsyncTask<List<WifiInfo>,Void, String>{
 
-                }
-            });
+        @Override
+        protected String doInBackground(List<WifiInfo>... params) {
+            socket = new SocketClient(ServerAddress, ServerPort);
+            if(socket == null) {
+                Log.e(TAG, "Problems creating the socket");
+                return null;
+            }
+            if(!socket.SocketConnect()){
+                Log.e(TAG, "Problems in connecting to the server");
+                return null;
+            }
+            if(!socket.sendQuery(lastSamples)) {
+                Log.e(TAG, "Problems in sending the query to the server");
+                return null ;
+            }
+            String response = socket.readLine();
+            socket.closeSocket();
+            if(response == null) {
+                Log.e(TAG, "Problems in retrieving the response from the server");
+                return null;
+            }
+            return response;
+        }
+
+        @Override
+        protected void onPostExecute(String s) {
+            TextView toShow = (TextView) findViewById(R.id.text_response);
+            toShow.setText(s);
         }
     }
 }
