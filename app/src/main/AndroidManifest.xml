@@ -32,7 +32,7 @@
 
             <meta-data
                 android:name="android.appwidget.provider"
-                android:resource="@xml/location_widget_info" />
+                android:resource="@layout/location_widget" />
         </receiver>
 
         <activity android:name=".LocationWidgetConfigureActivity">
