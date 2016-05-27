@@ -7,6 +7,8 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.wifi.ScanResult;
 import android.net.wifi.WifiManager;
+import android.os.AsyncTask;
+import android.os.Environment;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -22,6 +24,10 @@ import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
+import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -40,6 +46,9 @@ public class Contribution extends AppCompatActivity implements View.OnClickListe
     private DbManager dbm;
     private Measurement measurement;
     private ProgressBar mProgress;
+
+    private static final String ServerAddress = "192.168.1.20";
+    private static final int ServerPort = 8000;
 
 
     @Override
@@ -111,6 +120,7 @@ public class Contribution extends AppCompatActivity implements View.OnClickListe
                 dbm.exportDb();
                 return true;
             case R.id.send:
+                sendContributionDB();
                 return true;
             case R.id.emptyDb:
                 Log.v("MENU: ", "emptyDb");
@@ -121,6 +131,12 @@ public class Contribution extends AppCompatActivity implements View.OnClickListe
             default:
                 return super.onOptionsItemSelected(item);
         }
+    }
+
+    private boolean sendContributionDB() {
+        String databasePath = dbm.getDbPath();
+        new AsyncUpload().execute(databasePath);
+        return true;
     }
 
 
@@ -248,6 +264,65 @@ public class Contribution extends AppCompatActivity implements View.OnClickListe
                 dbm.exportDb();
                 break;
         }
+    }
+
+    private class AsyncUpload extends AsyncTask<String, Void, Void> {
+        private SocketClient socket;
+        @Override
+        protected Void doInBackground(String... params) {
+            SocketClient socket = null;
+            FileInputStream in = null;
+            File currentDB = null;
+            File data = null;
+            DataOutputStream dOut = null;
+            try {
+                socket = new SocketClient(ServerAddress, ServerPort);
+                if (socket == null) {
+                    Log.e(TAG, "Problems creating the socket");
+                    return null;
+                }
+                if (!socket.SocketConnect()) {
+                    Log.e(TAG, "Problems in connecting to the server");
+                    return null;
+                }
+
+                data = Environment.getDataDirectory();
+                currentDB = new File(data, params[0]);
+                in = new FileInputStream(currentDB);
+                dOut = socket.getDataOutputStream();
+                byte[] b = new byte[(int) currentDB.length()];
+                in.read(b);
+                dOut.writeInt(b.length); // write length of the message
+                dOut.write(b);           // write the message
+
+                /*
+                String response = socket.readLine();
+                socket.closeSocket();
+                if (response == null) {
+                    Log.e(TAG, "Problems in retrieving the response from the server");
+                    return null;
+                }
+                */
+            }catch(Exception e){
+                Log.e(TAG, e.toString());
+            }finally {
+                try {
+                    if (in != null) {
+                        in.close();
+                        dOut.close();
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                if (socket != null) {
+                    socket.closeSocket();
+                }
+
+            }
+            return null;
+        }
+
+
     }
 
 

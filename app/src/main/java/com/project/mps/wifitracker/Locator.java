@@ -25,7 +25,7 @@ import static android.widget.Toast.LENGTH_SHORT;
 public class Locator extends AppCompatActivity implements View.OnClickListener{
     private WifiManager WifiManager;
     private WifiReceiver WifiRec;
-    private SocketClient socket;
+
     private static final String ServerAddress = "192.168.1.20";
     private static final int ServerPort = 8888;
     private static final String TAG = "Locator";
@@ -39,7 +39,6 @@ public class Locator extends AppCompatActivity implements View.OnClickListener{
         //Initiate the local variable
         WifiManager = (WifiManager)getSystemService(Context.WIFI_SERVICE);
         WifiRec = new WifiReceiver();
-        socket = null;
         onQuerying = false;
 
         //Check if the wifi model has been turned on
@@ -130,6 +129,7 @@ public class Locator extends AppCompatActivity implements View.OnClickListener{
     }
 
     private class AsyncQuery extends AsyncTask<List<WifiInfo>,Void, String>{
+        private SocketClient socket;
 
         @Override
         protected String doInBackground(List<WifiInfo>... params) {

@@ -67,6 +67,12 @@ public class SocketClient {
         return ret;
     }
 
+    public DataOutputStream getDataOutputStream() throws IOException {
+        if(client == null)
+            return null;
+        return new DataOutputStream(client.getOutputStream());
+    }
+
     public boolean sendLine(String line){
         if(line == null || line.isEmpty()){
             Log.e(TAG, "sendLine: invalid parameters");
