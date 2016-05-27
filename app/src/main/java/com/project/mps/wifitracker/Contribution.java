@@ -275,6 +275,9 @@ public class Contribution extends AppCompatActivity implements View.OnClickListe
             File currentDB = null;
             File data = null;
             DataOutputStream dOut = null;
+            byte[] b = new byte[1024];
+            int dim = 0;
+            int count = 0;
             try {
                 socket = new SocketClient(ServerAddress, ServerPort);
                 if (socket == null) {
@@ -290,10 +293,13 @@ public class Contribution extends AppCompatActivity implements View.OnClickListe
                 currentDB = new File(data, params[0]);
                 in = new FileInputStream(currentDB);
                 dOut = socket.getDataOutputStream();
-                byte[] b = new byte[(int) currentDB.length()];
-                in.read(b);
-                dOut.writeInt(b.length); // write length of the message
-                dOut.write(b);           // write the message
+                dim = (int)currentDB.length();
+                dOut.writeInt(dim); // write length of the message
+                while(dim > 0) {
+                    count = in.read(b);
+                    dOut.write(b,0,count);           // write the message
+                    dim -= count;
+                }
 
                 /*
                 String response = socket.readLine();
