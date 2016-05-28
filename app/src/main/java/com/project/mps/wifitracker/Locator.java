@@ -19,6 +19,8 @@ import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import static android.widget.Toast.LENGTH_SHORT;
 
@@ -29,8 +31,12 @@ public class Locator extends AppCompatActivity implements View.OnClickListener{
     private static final String ServerAddress = "192.168.1.20";
     private static final int ServerPort = 8888;
     private static final String TAG = "Locator";
-    private List<WifiInfo> lastSamples;
+    private List<WifiInfo> lastSample;
+    private List<List<WifiInfo>> finalSamples;
     private boolean onQuerying;
+    private Timer timerTask;
+    private int NUM_SAMPLES;
+    private int iteration;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,6 +46,9 @@ public class Locator extends AppCompatActivity implements View.OnClickListener{
         WifiManager = (WifiManager)getSystemService(Context.WIFI_SERVICE);
         WifiRec = new WifiReceiver();
         onQuerying = false;
+        NUM_SAMPLES = 5;
+        finalSamples = new ArrayList<List<WifiInfo>>(NUM_SAMPLES);
+        iteration = 0;
 
         //Check if the wifi model has been turned on
         registerReceiver(WifiRec, new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));
@@ -84,8 +93,7 @@ public class Locator extends AppCompatActivity implements View.OnClickListener{
             case R.id.query_button:
                 //TODO: per il momento manda un campione solo, ma forse si potrebbero mandare più samples o aggregarli con una media
                 if(checkInternetConnectivity()) {
-                    onQuerying = true;
-                    WifiManager.startScan();
+                    startSampling();
                 }
                 break;
             case R.id.contribute_button:
@@ -96,7 +104,30 @@ public class Locator extends AppCompatActivity implements View.OnClickListener{
         }
     }
 
-    public boolean checkInternetConnectivity() {
+    private void startSampling(){
+        TextView toShow = (TextView) findViewById(R.id.text_response);
+        toShow.setText("Scanning...");
+        onQuerying = true;
+        timerTask = new Timer();
+        timerTask.scheduleAtFixedRate(new TimerTask() {
+            @Override
+            public void run() {
+                WifiManager.startScan();
+            }
+        }, 0, 500);
+    }
+
+    private void stopSampling(){
+        onQuerying = false;
+        iteration = 0;
+        timerTask.cancel();
+        timerTask.purge();
+        timerTask = null;
+        new AsyncQuery().execute(finalSamples);
+
+    }
+
+    private boolean checkInternetConnectivity() {
         ConnectivityManager connMgr = (ConnectivityManager)
                 getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
@@ -112,28 +143,32 @@ public class Locator extends AppCompatActivity implements View.OnClickListener{
     class WifiReceiver extends BroadcastReceiver{
 
         public void onReceive(Context c, Intent intent){
+            if(!onQuerying)
+                return;
             Log.v(TAG, "BREAK POINT");
             List<ScanResult> results;
             results = WifiManager.getScanResults();
-            lastSamples = new ArrayList<WifiInfo>();
+            lastSample = new ArrayList<WifiInfo>();
             for(int i = 0; i < results.size(); i++) {
                 Integer freq = results.get(i).frequency;
                 Integer level = results.get(i).level;
                 WifiInfo toAdd = new WifiInfo(results.get(i).BSSID, results.get(i).SSID, freq.toString(), level.toString());
-                lastSamples.add(toAdd);
+                lastSample.add(toAdd);
             }
-            if(onQuerying)
-                new AsyncQuery().execute(lastSamples);
-            onQuerying = false;
+            finalSamples.add(lastSample);
+            iteration++;
+            if(iteration == NUM_SAMPLES)
+                stopSampling();
         }
     }
 
-    private class AsyncQuery extends AsyncTask<List<WifiInfo>,Void, String>{
+    private class AsyncQuery extends AsyncTask<List<List<WifiInfo>>,Void, String>{
         private SocketClient socket;
 
         @Override
-        protected String doInBackground(List<WifiInfo>... params) {
+        protected String doInBackground(List<List<WifiInfo>>... params) {
             socket = new SocketClient(ServerAddress, ServerPort);
+            List<List<WifiInfo>> toSend = params[0];
             if(socket == null) {
                 Log.e(TAG, "Problems creating the socket");
                 return null;
@@ -142,9 +177,12 @@ public class Locator extends AppCompatActivity implements View.OnClickListener{
                 Log.e(TAG, "Problems in connecting to the server");
                 return null;
             }
-            if(!socket.sendQuery(lastSamples)) {
-                Log.e(TAG, "Problems in sending the query to the server");
-                return null ;
+            for(List<WifiInfo> sample : finalSamples) {
+                System.out.println(sample.toString());
+                if (!socket.sendQuery(sample)) {
+                    Log.e(TAG, "Problems in sending the query to the server");
+                    return null;
+                }
             }
             String response = socket.readLine();
             socket.closeSocket();
@@ -159,6 +197,7 @@ public class Locator extends AppCompatActivity implements View.OnClickListener{
         protected void onPostExecute(String s) {
             TextView toShow = (TextView) findViewById(R.id.text_response);
             toShow.setText(s);
+            finalSamples.clear();
         }
     }
 }

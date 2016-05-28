@@ -214,7 +214,7 @@ public class Contribution extends AppCompatActivity implements View.OnClickListe
             public void run() {
                 WifiManager.startScan();
             }
-        }, 0, 1000);
+        }, 0, 500);
     }
 
 
