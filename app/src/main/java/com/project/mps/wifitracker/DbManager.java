@@ -44,6 +44,7 @@ public class DbManager extends SQLiteOpenHelper {
 
     //utility
     private Hashids hashids;
+    private static final String SD_FOLDER = "/WiFi Tracker";
 
     public DbManager(Context c) {
         super(c, DATABASE_NAME, null, DATABASE_VERSION);
@@ -111,6 +112,7 @@ public class DbManager extends SQLiteOpenHelper {
         return DATABASE_NAME;
     }
 
+    //simply print the db
     public void LogDb() {
         SQLiteDatabase db = this.getReadableDatabase();
 
@@ -178,7 +180,7 @@ public class DbManager extends SQLiteOpenHelper {
         Log.v("exportDb","START");
         try {
             String root = Environment.getExternalStorageDirectory().toString();
-            File sd = new File(root + "/WiFi Tracker");
+            File sd = new File(root + SD_FOLDER);
             if(!sd.exists()){
                 if (!sd.mkdirs()) {
                     Log.e("exportDb", "Directory not created");
@@ -215,6 +217,27 @@ public class DbManager extends SQLiteOpenHelper {
             Log.v("ERROR", e.toString());
         }
 
+    }
+
+    public void deleteDb(){
+        Log.v("deleteDb","START");
+        try {
+            String root = Environment.getExternalStorageDirectory().toString();
+            File sd = new File(root + SD_FOLDER);
+            if(!sd.exists()){
+                if (!sd.mkdirs()) {
+                    Log.e("deleteDb", "Directory not created");
+                }
+            }
+            Log.v("deleteDb","sd: " + sd);
+
+            if (sd.canWrite()) {
+                for(File file: sd.listFiles())
+                    file.delete();
+            }
+        } catch (Exception e) {
+            Log.v("ERROR", e.toString());
+        }
     }
 
     public static String getDbPath() {
