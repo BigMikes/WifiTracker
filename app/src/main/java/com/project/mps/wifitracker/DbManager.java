@@ -13,6 +13,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.nio.channels.FileChannel;
+import java.security.Timestamp;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.UUID;
 
@@ -40,10 +42,14 @@ public class DbManager extends SQLiteOpenHelper {
     private static final String KEY_FREQUENCY = "frequency";
     private static final String KEY_RSSI = "rssi";
 
+    //utility
+    private Hashids hashids;
+
     public DbManager(Context c) {
         super(c, DATABASE_NAME, null, DATABASE_VERSION);
         Log.v("DBManager", "constructor");
         context = c;
+        hashids = new Hashids("LuigiGiulio");
     }
 
     @Override
@@ -186,7 +192,7 @@ public class DbManager extends SQLiteOpenHelper {
                 //String currentDBPath = "//data//com.project.mps.wifitracker//databases//measures";
                 String currentDBPath = getDbPath();
                 Log.v("exportDb","currentDBPath: " + currentDBPath);
-                String backupDBPath = "BackupDB.db";
+                String backupDBPath = hashids.encode(System.currentTimeMillis())+".db";
                 File currentDB = new File(data, currentDBPath);
                 File backupDB = new File(sd, backupDBPath);
                 if(!backupDB.exists()) {
