@@ -44,13 +44,14 @@ public class DbManager extends SQLiteOpenHelper {
 
     //utility
     private Hashids hashids;
+    private static final String SALT = "LuigiGiulio";
     private static final String SD_FOLDER = "/WiFi Tracker";
 
     public DbManager(Context c) {
         super(c, DATABASE_NAME, null, DATABASE_VERSION);
         Log.v("DBManager", "constructor");
         context = c;
-        hashids = new Hashids("LuigiGiulio");
+        hashids = new Hashids(SALT);
     }
 
     @Override
