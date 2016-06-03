@@ -89,12 +89,9 @@ public class Contribution extends AppCompatActivity implements View.OnClickListe
 
         //Set on click listener
         Button btStart = (Button) findViewById(R.id.button_start);
-        Button btExport = (Button) findViewById(R.id.button_export);
         try {
             assert btStart != null;
             btStart.setOnClickListener(this);
-            assert btExport != null;
-            btExport.setOnClickListener(this);
         } catch (AssertionError ae) {
             Log.v("ASSERTION_ERROR: ", ae.getMessage());
             Toast.makeText(Contribution.this, "Button not reachable: ", LENGTH_SHORT).show();
@@ -116,10 +113,14 @@ public class Contribution extends AppCompatActivity implements View.OnClickListe
         switch(item.getItemId()) {
             case R.id.export:
                 Log.v("MENU: ", "export");
-                dbm.LogDb();
+                //print the db if needed
+                //dbm.LogDb();
+                dbm.deleteDb();
                 dbm.exportDb();
                 return true;
             case R.id.send:
+                dbm.deleteDb();
+                dbm.exportDb();
                 sendContributionDB();
                 return true;
             case R.id.emptyDb:
@@ -127,6 +128,8 @@ public class Contribution extends AppCompatActivity implements View.OnClickListe
                 dbm.emptyDb();
                 return true;
             case R.id.deleteFile:
+                Log.v("MENU: ", "deleteDb");
+                dbm.deleteDb();
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -257,11 +260,6 @@ public class Contribution extends AppCompatActivity implements View.OnClickListe
                     Log.v("ASSERTION_ERROR: ", ae.getMessage());
                     Toast.makeText(Contribution.this, "Fill every field", LENGTH_SHORT).show();
                 }
-                break;
-            case R.id.button_export:
-                Log.v("BUTTON HANDLER: ", "export");
-                dbm.LogDb();
-                dbm.exportDb();
                 break;
         }
     }
