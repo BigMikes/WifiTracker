@@ -97,6 +97,8 @@ public class Locator extends AppCompatActivity implements View.OnClickListener{
                     progress.setMessage("Sampling...");
                     progress.setProgressStyle(ProgressDialog.STYLE_SPINNER);
                     progress.setIndeterminate(true);
+                    progress.setCancelable(false);
+                    progress.setCanceledOnTouchOutside(false);
                     progress.show();
                     startSampling();
                 }
@@ -166,7 +168,7 @@ public class Locator extends AppCompatActivity implements View.OnClickListener{
 
         @Override
         protected String doInBackground(List<List<WifiInfo>>... params) {
-            socket = new SocketClient(ServerAddress, ServerPort);
+            socket = new SocketClient(ServerAddress, ServerPort,5000);
             List<List<WifiInfo>> toSend = params[0];
             if(socket == null) {
                 Log.e(TAG, "Problems creating the socket");
@@ -194,10 +196,14 @@ public class Locator extends AppCompatActivity implements View.OnClickListener{
 
         @Override
         protected void onPostExecute(String s) {
+            progress.dismiss();
+            finalSamples.clear();
+            if(s == null){
+                Toast.makeText(Locator.this, "Server timeout, try later", Toast.LENGTH_SHORT).show();
+                return;
+            }
             TextView toShow = (TextView) findViewById(R.id.text_response);
             toShow.setText(s);
-            finalSamples.clear();
-            progress.dismiss();
         }
     }
 }

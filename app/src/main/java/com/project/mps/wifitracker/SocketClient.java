@@ -8,7 +8,9 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.net.SocketAddress;
 import java.util.List;
 
 /**
@@ -21,22 +23,28 @@ public class SocketClient {
     int port;
     private BufferedReader input;
     private PrintWriter output;
+    private int timeout;
 
-    public SocketClient(String address, int port) {
+    public SocketClient(String address, int port, int timeout) {
         if(address == null || address.isEmpty())
             return;
         if(port <= 0)
             return;
+        if(timeout < 0)
+            return;
+        this.timeout = timeout;
         this.address = address;
         this.port = port;
     }
 
     public boolean SocketConnect(){
         try {
-            this.client = new Socket(address,port);
+            client = new Socket();
+            SocketAddress remoteHost = new InetSocketAddress(address,port);
+            client.connect(remoteHost,timeout);
             output = new PrintWriter(client.getOutputStream(), true);
             input = new BufferedReader(new InputStreamReader(client.getInputStream()));
-        } catch (IOException e) {
+        } catch (Exception e) {
             e.printStackTrace();
             return false;
         }

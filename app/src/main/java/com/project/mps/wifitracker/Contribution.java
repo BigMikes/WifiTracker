@@ -255,10 +255,10 @@ public class Contribution extends AppCompatActivity implements View.OnClickListe
         }
     }
 
-    private class AsyncUpload extends AsyncTask<String, Void, Void> {
+    private class AsyncUpload extends AsyncTask<String, Void, Boolean> {
         private SocketClient socket;
         @Override
-        protected Void doInBackground(String... params) {
+        protected Boolean doInBackground(String... params) {
             SocketClient socket = null;
             FileInputStream in = null;
             File currentDB = null;
@@ -268,14 +268,14 @@ public class Contribution extends AppCompatActivity implements View.OnClickListe
             int dim = 0;
             int count = 0;
             try {
-                socket = new SocketClient(ServerAddress, ServerPort);
+                socket = new SocketClient(ServerAddress, ServerPort,5000);
                 if (socket == null) {
                     Log.e(TAG, "Problems creating the socket");
-                    return null;
+                    return false;
                 }
                 if (!socket.SocketConnect()) {
                     Log.e(TAG, "Problems in connecting to the server");
-                    return null;
+                    return false;
                 }
 
                 data = Environment.getDataDirectory();
@@ -314,10 +314,14 @@ public class Contribution extends AppCompatActivity implements View.OnClickListe
                 }
 
             }
-            return null;
+            return true;
         }
 
-
+        @Override
+        protected void onPostExecute(Boolean result) {
+            if(result == false)
+                Toast.makeText(Contribution.this, "Server timeout, try later", Toast.LENGTH_SHORT).show();
+        }
     }
 
 
