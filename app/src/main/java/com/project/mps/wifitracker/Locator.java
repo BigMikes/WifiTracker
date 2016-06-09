@@ -1,5 +1,6 @@
 package com.project.mps.wifitracker;
 
+import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -28,15 +29,15 @@ public class Locator extends AppCompatActivity implements View.OnClickListener{
     private WifiManager WifiManager;
     private WifiReceiver WifiRec;
 
-    private static final String ServerAddress = "192.168.1.20";
+    private static final String ServerAddress = "192.168.1.19";
     private static final int ServerPort = 8888;
     private static final String TAG = "Locator";
     private List<WifiInfo> lastSample;
     private List<List<WifiInfo>> finalSamples;
     private boolean onQuerying;
-    private Timer timerTask;
     private int NUM_SAMPLES;
     private int iteration;
+    private ProgressDialog progress;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -91,8 +92,12 @@ public class Locator extends AppCompatActivity implements View.OnClickListener{
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.query_button:
-                //TODO: per il momento manda un campione solo, ma forse si potrebbero mandare più samples o aggregarli con una media
                 if(checkInternetConnectivity()) {
+                    progress = new ProgressDialog(this);
+                    progress.setMessage("Sampling...");
+                    progress.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+                    progress.setIndeterminate(true);
+                    progress.show();
                     startSampling();
                 }
                 break;
@@ -108,21 +113,13 @@ public class Locator extends AppCompatActivity implements View.OnClickListener{
         TextView toShow = (TextView) findViewById(R.id.text_response);
         toShow.setText("Scanning...");
         onQuerying = true;
-        timerTask = new Timer();
-        timerTask.scheduleAtFixedRate(new TimerTask() {
-            @Override
-            public void run() {
-                WifiManager.startScan();
-            }
-        }, 0, 500);
+        WifiManager.startScan();
     }
 
     private void stopSampling(){
         onQuerying = false;
         iteration = 0;
-        timerTask.cancel();
-        timerTask.purge();
-        timerTask = null;
+        progress.setMessage("Asking to the server...");
         new AsyncQuery().execute(finalSamples);
 
     }
@@ -159,6 +156,8 @@ public class Locator extends AppCompatActivity implements View.OnClickListener{
             iteration++;
             if(iteration == NUM_SAMPLES)
                 stopSampling();
+            else
+                WifiManager.startScan();
         }
     }
 
@@ -198,6 +197,7 @@ public class Locator extends AppCompatActivity implements View.OnClickListener{
             TextView toShow = (TextView) findViewById(R.id.text_response);
             toShow.setText(s);
             finalSamples.clear();
+            progress.dismiss();
         }
     }
 }

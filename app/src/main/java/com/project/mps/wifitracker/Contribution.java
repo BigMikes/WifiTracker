@@ -47,14 +47,14 @@ public class Contribution extends AppCompatActivity implements View.OnClickListe
     private Measurement measurement;
     private ProgressBar mProgress;
 
-    private static final String ServerAddress = "192.168.1.20";
+    private static final String ServerAddress = "192.168.1.19";
     private static final int ServerPort = 8000;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_contribution);
 
         //initialization
         dbm = new DbManager(getApplicationContext());
@@ -66,10 +66,10 @@ public class Contribution extends AppCompatActivity implements View.OnClickListe
         mProgress = (ProgressBar) findViewById(R.id.progressBar);
         mProgress.setProgress(0);
 
+
         registerReceiver(WifiRec, new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));
         //If the wifi is turned off, it will be activated
-        if(!WifiManager.isWifiEnabled())
-        {
+        if(!WifiManager.isWifiEnabled()){
             WifiManager.setWifiEnabled(true);
             Toast.makeText(this, "Activating Wifi module", Toast.LENGTH_LONG).show();
         }
@@ -77,15 +77,6 @@ public class Contribution extends AppCompatActivity implements View.OnClickListe
 
         //Suggested GUI inputs
         setInputsAdapters(R.id.input_building,R.array.buildings_array);
-        //adapter doesn't work with less than one character
-        //setInputsAdapters(R.id.input_floor,R.array.floors_array);
-
-        //removed since each building has it's own way to number rooms
-        //setInputsAdapters(R.id.input_room,R.array.rooms_array);
-
-        //setInputsAdapters(R.id.input_num_samp,R.array.samples_array);
-
-        //Set the listener for the start measuring button
 
         //Set on click listener
         Button btStart = (Button) findViewById(R.id.button_start);
@@ -99,6 +90,19 @@ public class Contribution extends AppCompatActivity implements View.OnClickListe
 
     }
 
+
+    @Override
+    protected void onPause() {
+        unregisterReceiver(WifiRec);
+        super.onPause();
+    }
+
+
+    @Override
+    protected void onResume() {
+        registerReceiver(WifiRec, new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));
+        super.onResume();
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -193,19 +197,6 @@ public class Contribution extends AppCompatActivity implements View.OnClickListe
         autocompleteTextView.setThreshold(1);
     }
 
-
-    @Override
-    protected void onPause() {
-        unregisterReceiver(WifiRec);
-        super.onPause();
-    }
-
-
-    @Override
-    protected void onResume() {
-        registerReceiver(WifiRec, new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));
-        super.onResume();
-    }
 
 
     public void scanWifi(){
