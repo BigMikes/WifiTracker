@@ -29,8 +29,9 @@ public class Locator extends AppCompatActivity implements View.OnClickListener{
     private WifiManager WifiManager;
     private WifiReceiver WifiRec;
 
-    private static final String ServerAddress = "192.168.1.19";
-    private static final int ServerPort = 8888;
+    //private static final String ServerAddress = "192.168.1.19";
+    private static final String ServerAddress = "ciaoasdfghjkl.ddns.net";
+    private static final int ServerPort = 8080;
     private static final String TAG = "Locator";
     private List<WifiInfo> lastSample;
     private List<List<WifiInfo>> finalSamples;
@@ -168,7 +169,7 @@ public class Locator extends AppCompatActivity implements View.OnClickListener{
 
         @Override
         protected String doInBackground(List<List<WifiInfo>>... params) {
-            socket = new SocketClient(ServerAddress, ServerPort,5000);
+            socket = new SocketClient(ServerAddress, ServerPort,10000);
             List<List<WifiInfo>> toSend = params[0];
             if(socket == null) {
                 Log.e(TAG, "Problems creating the socket");
@@ -198,12 +199,28 @@ public class Locator extends AppCompatActivity implements View.OnClickListener{
         protected void onPostExecute(String s) {
             progress.dismiss();
             finalSamples.clear();
+            showResponse(s);
             if(s == null){
                 Toast.makeText(Locator.this, "Server timeout, try later", Toast.LENGTH_SHORT).show();
                 return;
             }
+        }
+
+        private void showResponse(String s) {
+            if(s == null){
+                TextView toShow = (TextView) findViewById(R.id.text_response);
+                toShow.setText("");
+                return;
+            }
+            String toSet;
+            String[] splitted = s.split("_");
+            String[] confidence = splitted[2].split(" ");
+            toSet = "You are in " + splitted[0] + " at floor " + splitted[1] + " inside room " + confidence[0];
+            toSet += " with " + confidence[1] + " probability";
             TextView toShow = (TextView) findViewById(R.id.text_response);
-            toShow.setText(s);
+            toShow.setText(toSet);
+
         }
     }
+
 }
