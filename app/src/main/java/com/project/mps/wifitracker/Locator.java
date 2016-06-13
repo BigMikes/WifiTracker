@@ -29,7 +29,7 @@ public class Locator extends AppCompatActivity implements View.OnClickListener{
     private WifiManager WifiManager;
     private WifiReceiver WifiRec;
 
-    //private static final String ServerAddress = "192.168.1.19";
+    //private static final String ServerAddress = "131.114.236.57";
     private static final String ServerAddress = "ciaoasdfghjkl.ddns.net";
     private static final int ServerPort = 8080;
     private static final String TAG = "Locator";
@@ -39,6 +39,7 @@ public class Locator extends AppCompatActivity implements View.OnClickListener{
     private int NUM_SAMPLES;
     private int iteration;
     private ProgressDialog progress;
+    private Timer timerTask;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,7 +49,7 @@ public class Locator extends AppCompatActivity implements View.OnClickListener{
         WifiManager = (WifiManager)getSystemService(Context.WIFI_SERVICE);
         WifiRec = new WifiReceiver();
         onQuerying = false;
-        NUM_SAMPLES = 5;
+        NUM_SAMPLES = 3;
         finalSamples = new ArrayList<List<WifiInfo>>(NUM_SAMPLES);
         iteration = 0;
 
@@ -116,11 +117,20 @@ public class Locator extends AppCompatActivity implements View.OnClickListener{
         TextView toShow = (TextView) findViewById(R.id.text_response);
         toShow.setText("Scanning...");
         onQuerying = true;
-        WifiManager.startScan();
+        timerTask = new Timer();
+        timerTask.scheduleAtFixedRate(new TimerTask() {
+            @Override
+            public void run() {
+                WifiManager.startScan();
+            }
+        }, 0, 500);
     }
 
     private void stopSampling(){
         onQuerying = false;
+        timerTask.cancel();
+        timerTask.purge();
+        timerTask = null;
         iteration = 0;
         progress.setMessage("Asking to the server...");
         new AsyncQuery().execute(finalSamples);
@@ -159,8 +169,6 @@ public class Locator extends AppCompatActivity implements View.OnClickListener{
             iteration++;
             if(iteration == NUM_SAMPLES)
                 stopSampling();
-            else
-                WifiManager.startScan();
         }
     }
 

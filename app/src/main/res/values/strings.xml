@@ -10,29 +10,63 @@
     <string name="empty_db">Empty db</string>
     <string name="empty_file">Empty File</string>
     <string-array name="buildings_array">
-        <item>polo a</item>
-        <item>polo b</item>
-        <item>polo c</item>
-        <item>polo f</item>
+        <item>Polo A</item>
+        <item>Polo B</item>
+        <item>Polo C</item>
+        <item>Polo F</item>
     </string-array>
-    <string-array name="floors_array">
-        <item>0</item>
-        <item>1</item>
-        <item>2</item>
-        <item>3</item>
-        <item>4</item>
+    <string-array name="rooms_polo_a">
+        <item>A11</item>
+        <item>A12</item>
+        <item>A13</item>
+        <item>A21</item>
+        <item>A22</item>
+        <item>A23</item>
+        <item>A24</item>
+        <item>A25</item>
+        <item>A26</item>
+        <item>A28</item>
     </string-array>
-    <string-array name="rooms_array">
-        <item>0</item>
-        <item>1</item>
-        <item>2</item>
-        <item>3</item>
-        <item>4</item>
-        <item>5</item>
-        <item>6</item>
-        <item>7</item>
-        <item>8</item>
-        <item>9</item>
+    <string-array name="rooms_polo_b">
+        <item>B11</item>
+        <item>B21</item>
+        <item>B22</item>
+        <item>B23</item>
+        <item>B24</item>
+        <item>B25</item>
+        <item>B31</item>
+        <item>B32</item>
+        <item>B33</item>
+        <item>B34</item>
+        <item>SI1</item>
+        <item>SI3</item>
+        <item>SI4</item>
+        <item>SI5</item>
+        <item>SI6</item>
+        <item>SI7</item>
+    </string-array>
+    <string-array name="rooms_polo_c">
+        <item>C01</item>
+        <item>C11</item>
+        <item>C21</item>
+        <item>C22</item>
+        <item>C31</item>
+        <item>C32</item>
+        <item>C33</item>
+        <item>C42</item>
+        <item>C43</item>
+        <item>C44</item>
+    </string-array>
+    <string-array name="rooms_polo_f">
+        <item>F1</item>
+        <item>F2</item>
+        <item>F3</item>
+        <item>F4</item>
+        <item>F5</item>
+        <item>F6</item>
+        <item>F7</item>
+        <item>F8</item>
+        <item>F9</item>
     </string-array>
     <string-array name="samples_array">
         <item>5</item>

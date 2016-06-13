@@ -1,5 +1,6 @@
 package com.project.mps.wifitracker;
 
+import android.app.Dialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -21,6 +22,7 @@ import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.NumberPicker;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
@@ -35,7 +37,7 @@ import java.util.TimerTask;
 import static android.widget.Toast.LENGTH_SHORT;
 
 
-public class Contribution extends AppCompatActivity implements View.OnClickListener {
+public class Contribution extends AppCompatActivity implements View.OnClickListener,NumberPicker.OnValueChangeListener {
 
     private static final String TAG = "CONTRIBUTION";
     private WifiManager WifiManager;
@@ -80,15 +82,45 @@ public class Contribution extends AppCompatActivity implements View.OnClickListe
 
         //Set on click listener
         Button btStart = (Button) findViewById(R.id.button_start);
+        EditText building = (EditText) findViewById(R.id.input_building);
+        EditText floor = (EditText) findViewById(R.id.input_floor);
+        EditText room = (EditText) findViewById(R.id.input_room);
         try {
             assert btStart != null;
             btStart.setOnClickListener(this);
+
+            //Set the listener to show the picker dialog
+            assert building != null;
+            assert floor != null;
+            assert room != null;
+            building.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+                @Override
+                public void onFocusChange(View v, boolean hasFocus) {
+                    if (hasFocus) {
+                        showDialogPicker("Buildings", v);
+                    }
+                }
+            });
+            room.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+                @Override
+                public void onFocusChange(View v, boolean hasFocus) {
+                    if (hasFocus) {
+                        showDialogPicker("Rooms", v);
+                    }
+                }
+            });
+
         } catch (AssertionError ae) {
             Log.v("ASSERTION_ERROR: ", ae.getMessage());
-            Toast.makeText(Contribution.this, "Button not reachable: ", LENGTH_SHORT).show();
+            Toast.makeText(Contribution.this, "Error in loading the GUI", LENGTH_SHORT).show();
         }
 
+        //Set default value for num of samples
+        EditText samples = (EditText) findViewById(R.id.input_num_samp);
+        samples.setText("5");
+
     }
+
 
 
     @Override
@@ -111,6 +143,61 @@ public class Contribution extends AppCompatActivity implements View.OnClickListe
         return true;
     }
 
+    private void showDialogPicker(String title, View v) {
+        //final String[] prova = {"prova1", "prova2", "prova3", "prova4"};
+        final String[] stringsToShow;
+        String[] buildingsArray = getResources().getStringArray(R.array.buildings_array);
+        final EditText view = (EditText) v;
+        final Dialog d = new Dialog(Contribution.this);
+        if(title.equals("Buildings"))
+            stringsToShow = buildingsArray;
+        else{
+            //Show only the rooms that belong to the given building
+            EditText building = (EditText) findViewById(R.id.input_building);
+            String tag = "rooms_";
+            String temp = building.getText().toString().toLowerCase();
+            temp = temp.replaceAll(" ", "_");
+            tag += temp;
+            Log.v("TAG", tag);
+            int resourceId = getResources().getIdentifier(tag, "array", getPackageName());
+            if(resourceId == 0) {
+                Toast.makeText(this, "Please select a building before", Toast.LENGTH_LONG).show();
+                return;
+            }
+            else
+                stringsToShow = getResources().getStringArray(resourceId);
+        }
+        d.setTitle(title);
+        d.setContentView(R.layout.dialog_picker);
+        Button cancel = (Button) d.findViewById(R.id.Cancel);
+        Button set = (Button) d.findViewById(R.id.Set);
+        final NumberPicker np = (NumberPicker) d.findViewById(R.id.numberPicker1);
+        np.setMinValue(0);
+        np.setMaxValue(stringsToShow.length-1);
+        np.setDisplayedValues(stringsToShow);
+        np.setWrapSelectorWheel(false);
+        np.setOnValueChangedListener(this);
+        set.setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View v) {
+                view.setText(stringsToShow[np.getValue()]);
+                d.dismiss();
+            }
+        });
+        cancel.setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View v) {
+                d.dismiss();
+            }
+        });
+        d.show();
+    }
+
+    @Override
+    public void onValueChange(NumberPicker picker, int oldVal, int newVal) {
+    }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -252,6 +339,7 @@ public class Contribution extends AppCompatActivity implements View.OnClickListe
                     Toast.makeText(Contribution.this, "Fill every field", LENGTH_SHORT).show();
                 }
                 break;
+
         }
     }
 
