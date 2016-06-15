@@ -29,8 +29,8 @@ public class Locator extends AppCompatActivity implements View.OnClickListener{
     private WifiManager WifiManager;
     private WifiReceiver WifiRec;
 
-    //private static final String ServerAddress = "131.114.236.57";
-    private static final String ServerAddress = "ciaoasdfghjkl.ddns.net";
+    private static final String ServerAddress = "192.168.1.19";
+    //private static final String ServerAddress = "ciaoasdfghjkl.ddns.net";
     private static final int ServerPort = 8080;
     private static final String TAG = "Locator";
     private List<WifiInfo> lastSample;
@@ -40,6 +40,7 @@ public class Locator extends AppCompatActivity implements View.OnClickListener{
     private int iteration;
     private ProgressDialog progress;
     private Timer timerTask;
+    private int timeOutInterval = 10000;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -94,7 +95,9 @@ public class Locator extends AppCompatActivity implements View.OnClickListener{
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.query_button:
+                //The user wants to know where he/she is
                 if(checkInternetConnectivity()) {
+                    //Start the waiting dialog
                     progress = new ProgressDialog(this);
                     progress.setMessage("Sampling...");
                     progress.setProgressStyle(ProgressDialog.STYLE_SPINNER);
@@ -102,6 +105,7 @@ public class Locator extends AppCompatActivity implements View.OnClickListener{
                     progress.setCancelable(false);
                     progress.setCanceledOnTouchOutside(false);
                     progress.show();
+                    //Start sampling wifi fingerprints
                     startSampling();
                 }
                 break;
@@ -113,10 +117,13 @@ public class Locator extends AppCompatActivity implements View.OnClickListener{
         }
     }
 
+    //It initializes the sampling process
     private void startSampling(){
         TextView toShow = (TextView) findViewById(R.id.text_response);
         toShow.setText("Scanning...");
+        //Set the flag
         onQuerying = true;
+        //In order to receive wifi samples we need to ask periodically to the manager for them
         timerTask = new Timer();
         timerTask.scheduleAtFixedRate(new TimerTask() {
             @Override
@@ -126,17 +133,22 @@ public class Locator extends AppCompatActivity implements View.OnClickListener{
         }, 0, 500);
     }
 
+    //After it's collected N samples it stops sampling
     private void stopSampling(){
+        //Reset the flag
         onQuerying = false;
+        //Clear the timer
         timerTask.cancel();
         timerTask.purge();
         timerTask = null;
         iteration = 0;
         progress.setMessage("Asking to the server...");
+        //Create an asyncTask to send the collected samples to the central server
         new AsyncQuery().execute(finalSamples);
 
     }
 
+    //Function to check if the device is connected
     private boolean checkInternetConnectivity() {
         ConnectivityManager connMgr = (ConnectivityManager)
                 getSystemService(Context.CONNECTIVITY_SERVICE);
@@ -149,51 +161,62 @@ public class Locator extends AppCompatActivity implements View.OnClickListener{
         }
     }
 
-
+    //Private class that implements the broadcast receiver of wifi scan results intent
     class WifiReceiver extends BroadcastReceiver{
-
+        //Everytime it receives an intent it means that a wifi scan is ready to be read
         public void onReceive(Context c, Intent intent){
+            //Check if it is interested in collecting samples
             if(!onQuerying)
                 return;
             Log.v(TAG, "BREAK POINT");
             List<ScanResult> results;
             results = WifiManager.getScanResults();
+            //Create a list to store each record regarding each wifi access point
             lastSample = new ArrayList<WifiInfo>();
+            //Extract the interesting features from the wifi scan result
             for(int i = 0; i < results.size(); i++) {
+                //For each wifi access point spotted
                 Integer freq = results.get(i).frequency;
                 Integer level = results.get(i).level;
                 WifiInfo toAdd = new WifiInfo(results.get(i).BSSID, results.get(i).SSID, freq.toString(), level.toString());
                 lastSample.add(toAdd);
             }
+            //Finally add the sample inside another list
             finalSamples.add(lastSample);
             iteration++;
+            //When it reaches the desired number of samples it stops sampling
             if(iteration == NUM_SAMPLES)
                 stopSampling();
         }
     }
 
+    //Private class that implements the async-task needed to send the samples to the server
     private class AsyncQuery extends AsyncTask<List<List<WifiInfo>>,Void, String>{
         private SocketClient socket;
 
         @Override
         protected String doInBackground(List<List<WifiInfo>>... params) {
-            socket = new SocketClient(ServerAddress, ServerPort,10000);
+            //Create the socket
+            socket = new SocketClient(ServerAddress, ServerPort, timeOutInterval);
             List<List<WifiInfo>> toSend = params[0];
             if(socket == null) {
                 Log.e(TAG, "Problems creating the socket");
                 return null;
             }
+            //Connect the socket to the server
             if(!socket.SocketConnect()){
                 Log.e(TAG, "Problems in connecting to the server");
                 return null;
             }
-            for(List<WifiInfo> sample : finalSamples) {
+            //For each single sample: take it and send it to the server
+            for(List<WifiInfo> sample : toSend) {
                 System.out.println(sample.toString());
                 if (!socket.sendQuery(sample)) {
                     Log.e(TAG, "Problems in sending the query to the server");
                     return null;
                 }
             }
+            //Read the server response
             String response = socket.readLine();
             socket.closeSocket();
             if(response == null) {
@@ -204,9 +227,11 @@ public class Locator extends AppCompatActivity implements View.OnClickListener{
         }
 
         @Override
-        protected void onPostExecute(String s) {
+        protected void onPostExecute(String s) {            //This function is called when the function "doInBackground" is finished
+            //Remove the waiting dialog and clear the samples data structure
             progress.dismiss();
             finalSamples.clear();
+            //Show the result to the user
             showResponse(s);
             if(s == null){
                 Toast.makeText(Locator.this, "Server timeout, try later", Toast.LENGTH_SHORT).show();
@@ -214,12 +239,14 @@ public class Locator extends AppCompatActivity implements View.OnClickListener{
             }
         }
 
+        //Function that parses the response of the server and shows it to the user
         private void showResponse(String s) {
             if(s == null){
                 TextView toShow = (TextView) findViewById(R.id.text_response);
                 toShow.setText("");
                 return;
             }
+            //Parse the response and build the string to be shown
             String toSet;
             String[] splitted = s.split("_");
             String[] confidence = splitted[2].split(" ");
