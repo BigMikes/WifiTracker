@@ -16,30 +16,19 @@
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".Contribution"></activity>
+
+        <activity android:name=".Contribution" />
         <activity android:name=".Locator">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
 
-        <receiver android:name=".LocationWidget">
-            <intent-filter>
-                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
-            </intent-filter>
-
-            <meta-data
-                android:name="android.appwidget.provider"
-                android:resource="@layout/location_widget" />
-        </receiver>
-
-        <activity android:name=".LocationWidgetConfigureActivity">
-            <intent-filter>
-                <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" />
-            </intent-filter>
-        </activity>
+        <service
+            android:name=".LocatorService"
+            android:enabled="true"
+            android:exported="true"></service>
     </application>
 
 </manifest>
