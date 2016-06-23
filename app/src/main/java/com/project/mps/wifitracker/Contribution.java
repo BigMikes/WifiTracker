@@ -77,9 +77,6 @@ public class Contribution extends AppCompatActivity implements View.OnClickListe
         }
 
 
-        //Suggested GUI inputs
-        setInputsAdapters(R.id.input_building,R.array.buildings_array);
-
         //Set on click listener
         Button btStart = (Button) findViewById(R.id.button_start);
         EditText building = (EditText) findViewById(R.id.input_building);
@@ -169,7 +166,6 @@ public class Contribution extends AppCompatActivity implements View.OnClickListe
         }
         d.setTitle(title);
         d.setContentView(R.layout.dialog_picker);
-        Button cancel = (Button) d.findViewById(R.id.Cancel);
         Button set = (Button) d.findViewById(R.id.Set);
         final NumberPicker np = (NumberPicker) d.findViewById(R.id.numberPicker1);
         np.setMinValue(0);
@@ -185,13 +181,6 @@ public class Contribution extends AppCompatActivity implements View.OnClickListe
                 d.dismiss();
             }
         });
-        cancel.setOnClickListener(new View.OnClickListener()
-        {
-            @Override
-            public void onClick(View v) {
-                d.dismiss();
-            }
-        });
         d.show();
     }
 
@@ -203,7 +192,7 @@ public class Contribution extends AppCompatActivity implements View.OnClickListe
     public boolean onOptionsItemSelected(MenuItem item) {
         switch(item.getItemId()) {
             case R.id.export:
-                Log.v("MENU: ", "export");
+                Log.v("MENU: ", "export database");
                 //print the db if needed
                 //dbm.LogDb();
                 dbm.deleteDb();
@@ -215,11 +204,11 @@ public class Contribution extends AppCompatActivity implements View.OnClickListe
                 sendContributionDB();
                 return true;
             case R.id.emptyDb:
-                Log.v("MENU: ", "emptyDb");
+                Log.v("MENU: ", "empty database");
                 dbm.emptyDb();
                 return true;
             case R.id.deleteFile:
-                Log.v("MENU: ", "deleteDb");
+                Log.v("MENU: ", "delete database");
                 dbm.deleteDb();
                 return true;
             default:
