@@ -1,15 +1,16 @@
 package com.project.mps.wifitracker;
 
+import android.app.Activity;
 import android.app.ProgressDialog;
-import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
+import android.content.ServiceConnection;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.net.wifi.ScanResult;
 import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
+import android.os.IBinder;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -18,47 +19,41 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
-
 import static android.widget.Toast.LENGTH_SHORT;
 
 public class Locator extends AppCompatActivity implements View.OnClickListener{
-    private WifiManager WifiManager;
-    private WifiReceiver WifiRec;
+    /*-----------------------------CONFIG VARIABLES--------------------------*/
+    private static final String TAG = "ClientLocator";
 
-    private static final String ServerAddress = "192.168.1.19";
-    //private static final String ServerAddress = "ciaoasdfghjkl.ddns.net";
-    private static final int ServerPort = 8080;
-    private static final String TAG = "Locator";
-    private List<WifiInfo> lastSample;
-    private List<List<WifiInfo>> finalSamples;
-    private boolean onQuerying;
-    private int NUM_SAMPLES;
-    private int iteration;
+    /*----------------------------STATE VARIABLES----------------------------*/
     private ProgressDialog progress;
-    private Timer timerTask;
-    private int timeOutInterval = 10000;
+    private android.net.wifi.WifiManager WifiManager;
+    private LocatorService locService;
+    private boolean connected;
+
+    //Anonymous class to connect with the localization service
+    public ServiceConnection connection = new ServiceConnection(){
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            LocatorService.LocatorBinder binder = (LocatorService.LocatorBinder) service;
+            locService = binder.getService();
+            Log.i(TAG, "Service retrieved");
+            connected = true;
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+            connected = false;
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_locator);
-        //Initiate the local variable
-        WifiManager = (WifiManager)getSystemService(Context.WIFI_SERVICE);
-        WifiRec = new WifiReceiver();
-        onQuerying = false;
-        NUM_SAMPLES = 3;
-        finalSamples = new ArrayList<List<WifiInfo>>(NUM_SAMPLES);
-        iteration = 0;
-
-        //Check if the wifi model has been turned on
-        registerReceiver(WifiRec, new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));
         //If the wifi is turned off, it will be activated
-        if(!WifiManager.isWifiEnabled())
-        {
+        WifiManager = (WifiManager)getSystemService(Context.WIFI_SERVICE);
+        if(!WifiManager.isWifiEnabled()){
             WifiManager.setWifiEnabled(true);
             Toast.makeText(this, "Activating Wifi module", Toast.LENGTH_LONG).show();
         }
@@ -75,20 +70,24 @@ public class Locator extends AppCompatActivity implements View.OnClickListener{
             Log.v("ASSERTION_ERROR: ", ae.getMessage());
             Toast.makeText(Locator.this, "Button not reachable: ", LENGTH_SHORT).show();
         }
-
     }
 
     @Override
-    protected void onPause() {
-        unregisterReceiver(WifiRec);
-        super.onPause();
+    protected void onStart() {
+        super.onStart();
+        //When the application starts, we need to create the service and bind to it
+        Intent locatorServiceInt = new Intent(this, LocatorService.class);
+        bindService(locatorServiceInt,connection,Context.BIND_AUTO_CREATE);
+        Log.i(TAG, "Service created");
     }
 
-
     @Override
-    protected void onResume() {
-        registerReceiver(WifiRec, new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));
-        super.onResume();
+    protected void onStop() {
+        super.onStop();
+        if(connected){
+            unbindService(connection);
+            connected = false;
+        }
     }
 
     @Override
@@ -106,7 +105,7 @@ public class Locator extends AppCompatActivity implements View.OnClickListener{
                     progress.setCanceledOnTouchOutside(false);
                     progress.show();
                     //Start sampling wifi fingerprints
-                    startSampling();
+                    getLocation();
                 }
                 break;
             case R.id.contribute_button:
@@ -118,33 +117,34 @@ public class Locator extends AppCompatActivity implements View.OnClickListener{
     }
 
     //It initializes the sampling process
-    private void startSampling(){
+    private void getLocation(){
         TextView toShow = (TextView) findViewById(R.id.text_response);
         toShow.setText("Scanning...");
-        //Set the flag
-        onQuerying = true;
-        //In order to receive wifi samples we need to ask periodically to the manager for them
-        timerTask = new Timer();
-        timerTask.scheduleAtFixedRate(new TimerTask() {
-            @Override
-            public void run() {
-                WifiManager.startScan();
-            }
-        }, 0, 500);
+        new getLocationFromService().execute();
     }
 
-    //After it's collected N samples it stops sampling
-    private void stopSampling(){
-        //Reset the flag
-        onQuerying = false;
-        //Clear the timer
-        timerTask.cancel();
-        timerTask.purge();
-        timerTask = null;
-        iteration = 0;
-        progress.setMessage("Asking to the server...");
-        //Create an asyncTask to send the collected samples to the central server
-        new AsyncQuery().execute(finalSamples);
+    //After it's collected N samples it stops sampling and shows the response
+    private void LocationRetrieved(String s){
+        progress.dismiss();
+        showResponse(s);
+    }
+
+    //Function that parses the response of the server and shows it to the user
+    private void showResponse(String s) {
+        if(s == null){
+            TextView toShow = (TextView) findViewById(R.id.text_response);
+            toShow.setText("");
+            Toast.makeText(this, "The server seems to be offline, please retry later", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        //Parse the response and build the string to be shown
+        String toSet;
+        String[] splitted = s.split("_");
+        String[] confidence = splitted[2].split(" ");
+        toSet = "You are in " + splitted[0] + " at floor " + splitted[1] + " inside room " + confidence[0];
+        toSet += " with " + confidence[1] + " probability";
+        TextView toShow = (TextView) findViewById(R.id.text_response);
+        toShow.setText(toSet);
 
     }
 
@@ -161,100 +161,19 @@ public class Locator extends AppCompatActivity implements View.OnClickListener{
         }
     }
 
-    //Private class that implements the broadcast receiver of wifi scan results intent
-    class WifiReceiver extends BroadcastReceiver{
-        //Everytime it receives an intent it means that a wifi scan is ready to be read
-        public void onReceive(Context c, Intent intent){
-            //Check if it is interested in collecting samples
-            if(!onQuerying)
-                return;
-            Log.v(TAG, "BREAK POINT");
-            List<ScanResult> results;
-            results = WifiManager.getScanResults();
-            //Create a list to store each record regarding each wifi access point
-            lastSample = new ArrayList<WifiInfo>();
-            //Extract the interesting features from the wifi scan result
-            for(int i = 0; i < results.size(); i++) {
-                //For each wifi access point spotted
-                Integer freq = results.get(i).frequency;
-                Integer level = results.get(i).level;
-                WifiInfo toAdd = new WifiInfo(results.get(i).BSSID, results.get(i).SSID, freq.toString(), level.toString());
-                lastSample.add(toAdd);
-            }
-            //Finally add the sample inside another list
-            finalSamples.add(lastSample);
-            iteration++;
-            //When it reaches the desired number of samples it stops sampling
-            if(iteration == NUM_SAMPLES)
-                stopSampling();
-        }
-    }
-
-    //Private class that implements the async-task needed to send the samples to the server
-    private class AsyncQuery extends AsyncTask<List<List<WifiInfo>>,Void, String>{
-        private SocketClient socket;
+    //To use the localization service it necessary to create and execute an asynctask,
+    //or at least to call the function provided by the service in a different thread
+    private class getLocationFromService extends AsyncTask<Void,Void, String> {
 
         @Override
-        protected String doInBackground(List<List<WifiInfo>>... params) {
-            //Create the socket
-            socket = new SocketClient(ServerAddress, ServerPort, timeOutInterval);
-            List<List<WifiInfo>> toSend = params[0];
-            if(socket == null) {
-                Log.e(TAG, "Problems creating the socket");
-                return null;
-            }
-            //Connect the socket to the server
-            if(!socket.SocketConnect()){
-                Log.e(TAG, "Problems in connecting to the server");
-                return null;
-            }
-            //For each single sample: take it and send it to the server
-            for(List<WifiInfo> sample : toSend) {
-                System.out.println(sample.toString());
-                if (!socket.sendQuery(sample)) {
-                    Log.e(TAG, "Problems in sending the query to the server");
-                    return null;
-                }
-            }
-            //Read the server response
-            String response = socket.readLine();
-            socket.closeSocket();
-            if(response == null) {
-                Log.e(TAG, "Problems in retrieving the response from the server");
-                return null;
-            }
-            return response;
+        protected String doInBackground(Void... params) {
+            String location = locService.localizeMe();
+            return location;
         }
 
         @Override
-        protected void onPostExecute(String s) {            //This function is called when the function "doInBackground" is finished
-            //Remove the waiting dialog and clear the samples data structure
-            progress.dismiss();
-            finalSamples.clear();
-            //Show the result to the user
-            showResponse(s);
-            if(s == null){
-                Toast.makeText(Locator.this, "Server timeout, try later", Toast.LENGTH_SHORT).show();
-                return;
-            }
-        }
-
-        //Function that parses the response of the server and shows it to the user
-        private void showResponse(String s) {
-            if(s == null){
-                TextView toShow = (TextView) findViewById(R.id.text_response);
-                toShow.setText("");
-                return;
-            }
-            //Parse the response and build the string to be shown
-            String toSet;
-            String[] splitted = s.split("_");
-            String[] confidence = splitted[2].split(" ");
-            toSet = "You are in " + splitted[0] + " at floor " + splitted[1] + " inside room " + confidence[0];
-            toSet += " with " + confidence[1] + " probability";
-            TextView toShow = (TextView) findViewById(R.id.text_response);
-            toShow.setText(toSet);
-
+        protected void onPostExecute(String s) {
+            LocationRetrieved(s);
         }
     }
 
