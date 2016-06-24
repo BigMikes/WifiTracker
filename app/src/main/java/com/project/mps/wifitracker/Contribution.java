@@ -145,6 +145,8 @@ public class Contribution extends AppCompatActivity implements View.OnClickListe
         String[] buildingsArray = getResources().getStringArray(R.array.buildings_array);
         final EditText view = (EditText) v;
         final Dialog d = new Dialog(Contribution.this);
+        final NumberPicker np = (NumberPicker) d.findViewById(R.id.numberPicker1);
+        //The picker is shown in two different cases: buildings and rooms
         if(title.equals("Buildings"))
             stringsToShow = buildingsArray;
         else{
@@ -163,10 +165,10 @@ public class Contribution extends AppCompatActivity implements View.OnClickListe
             else
                 stringsToShow = getResources().getStringArray(resourceId);
         }
+        //Set and show the dialog with the picker
         d.setTitle(title);
         d.setContentView(R.layout.dialog_picker);
         Button set = (Button) d.findViewById(R.id.Set);
-        final NumberPicker np = (NumberPicker) d.findViewById(R.id.numberPicker1);
         np.setMinValue(0);
         np.setMaxValue(stringsToShow.length-1);
         np.setDisplayedValues(stringsToShow);
@@ -220,12 +222,13 @@ public class Contribution extends AppCompatActivity implements View.OnClickListe
     }
 
     private boolean sendContributionDB() {
+        //Start the async task that will send the contribution database to the server
         String databasePath = dbm.getDbPath();
         new AsyncUpload().execute(databasePath);
         return true;
     }
 
-
+    //Since it is difficult to remove single samples from the database, it shows a confirmation dialog before starting sampling
     private void showDialogConfirmation(String building, String floor, String room, String nSamples) {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         String toShow = "Bulding: " + building +
