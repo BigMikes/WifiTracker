@@ -134,7 +134,7 @@ public class Locator extends AppCompatActivity implements View.OnClickListener{
         if(s == null){
             TextView toShow = (TextView) findViewById(R.id.text_response);
             toShow.setText("");
-            Toast.makeText(this, "The server seems to be offline, please retry later", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Location not found, please retry later", Toast.LENGTH_SHORT).show();
             return;
         }
         //Parse the response and build the string to be shown

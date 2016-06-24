@@ -120,6 +120,10 @@ public class LocatorService extends Service {
             Log.d(TAG, "Wait the server's response");
             //With the collected samples, it asks to the server for classification
             result = queryToServer(finalSamples);
+            if(result.contains("Not found")){
+                Log.d(TAG, "The server wasn't able to find my location");
+                return null;
+            }
         } catch (Exception e) {
             e.printStackTrace();
             return null;

@@ -141,7 +141,6 @@ public class Contribution extends AppCompatActivity implements View.OnClickListe
     }
 
     private void showDialogPicker(String title, View v) {
-        //final String[] prova = {"prova1", "prova2", "prova3", "prova4"};
         final String[] stringsToShow;
         String[] buildingsArray = getResources().getStringArray(R.array.buildings_array);
         final EditText view = (EditText) v;
@@ -197,19 +196,23 @@ public class Contribution extends AppCompatActivity implements View.OnClickListe
                 //dbm.LogDb();
                 dbm.deleteDb();
                 dbm.exportDb();
+                Toast.makeText(this, "Database has been successfully exported to file", Toast.LENGTH_LONG).show();
                 return true;
             case R.id.send:
                 dbm.deleteDb();
                 dbm.exportDb();
                 sendContributionDB();
+                Toast.makeText(this, "Database has been sent to the server", Toast.LENGTH_LONG).show();
                 return true;
             case R.id.emptyDb:
                 Log.v("MENU: ", "empty database");
                 dbm.emptyDb();
+                Toast.makeText(this, "Database has been cleaned up", Toast.LENGTH_LONG).show();
                 return true;
             case R.id.deleteFile:
-                Log.v("MENU: ", "delete database");
+                Log.v("MENU: ", "Folder file has been deleted");
                 dbm.deleteDb();
+                Toast.makeText(this, "Folder has been cleaned up", Toast.LENGTH_LONG).show();
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -259,20 +262,6 @@ public class Contribution extends AppCompatActivity implements View.OnClickListe
             return false;
         return true;
     }
-
-
-    private void setInputsAdapters(int autoCompleteText, int strings_array) {
-        // Get a reference to the AutoCompleteTextView in the layout
-        AutoCompleteTextView autocompleteTextView = (AutoCompleteTextView) findViewById(autoCompleteText);
-        // Get the string array
-        String[] strings = getResources().getStringArray(strings_array);
-        // Create the adapter and set it to the AutoCompleteTextView
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, strings);
-        assert autocompleteTextView != null;
-        autocompleteTextView.setAdapter(adapter);
-        autocompleteTextView.setThreshold(1);
-    }
-
 
 
     public void scanWifi(){
