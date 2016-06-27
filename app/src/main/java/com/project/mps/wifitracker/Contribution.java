@@ -49,8 +49,11 @@ public class Contribution extends AppCompatActivity implements View.OnClickListe
     private Measurement measurement;
     private ProgressBar mProgress;
 
-    private static final String ServerAddress = "192.168.1.19";
+    private static final String ServerAddress = "131.114.198.186";
     private static final int ServerPort = 8000;
+
+    private static Dialog d;
+    private static NumberPicker np;
 
 
     @Override
@@ -116,6 +119,7 @@ public class Contribution extends AppCompatActivity implements View.OnClickListe
         EditText samples = (EditText) findViewById(R.id.input_num_samp);
         samples.setText("5");
 
+        d = new Dialog(Contribution.this);
     }
 
 
@@ -141,48 +145,48 @@ public class Contribution extends AppCompatActivity implements View.OnClickListe
     }
 
     private void showDialogPicker(String title, View v) {
-        final String[] stringsToShow;
-        String[] buildingsArray = getResources().getStringArray(R.array.buildings_array);
-        final EditText view = (EditText) v;
-        final Dialog d = new Dialog(Contribution.this);
-        final NumberPicker np = (NumberPicker) d.findViewById(R.id.numberPicker1);
-        //The picker is shown in two different cases: buildings and rooms
-        if(title.equals("Buildings"))
-            stringsToShow = buildingsArray;
-        else{
-            //Show only the rooms that belong to the given building
-            EditText building = (EditText) findViewById(R.id.input_building);
-            String tag = "rooms_";
-            String temp = building.getText().toString().toLowerCase();
-            temp = temp.replaceAll(" ", "_");
-            tag += temp;
-            Log.v("TAG", tag);
-            int resourceId = getResources().getIdentifier(tag, "array", getPackageName());
-            if(resourceId == 0) {
-                Toast.makeText(this, "Please select a building before", Toast.LENGTH_LONG).show();
-                return;
+        if(d != null) {
+            final String[] stringsToShow;
+            String[] buildingsArray = getResources().getStringArray(R.array.buildings_array);
+            final EditText view = (EditText) v;
+
+            //The picker is shown in two different cases: buildings and rooms
+            if (title.equals("Buildings"))
+                stringsToShow = buildingsArray;
+            else {
+                //Show only the rooms that belong to the given building
+                EditText building = (EditText) findViewById(R.id.input_building);
+                String tag = "rooms_";
+                String temp = building.getText().toString().toLowerCase();
+                temp = temp.replaceAll(" ", "_");
+                tag += temp;
+                Log.v("TAG", tag);
+                int resourceId = getResources().getIdentifier(tag, "array", getPackageName());
+                if (resourceId == 0) {
+                    Toast.makeText(this, "Please select a building before", Toast.LENGTH_LONG).show();
+                    return;
+                } else
+                    stringsToShow = getResources().getStringArray(resourceId);
             }
-            else
-                stringsToShow = getResources().getStringArray(resourceId);
+            //Set and show the dialog with the picker
+            d.setTitle(title);
+            d.setContentView(R.layout.dialog_picker);
+            Button set = (Button) d.findViewById(R.id.Set);
+            np = (NumberPicker) d.findViewById(R.id.numberPicker);
+            np.setMinValue(0);
+            np.setMaxValue(stringsToShow.length - 1);
+            np.setDisplayedValues(stringsToShow);
+            np.setWrapSelectorWheel(false);
+            np.setOnValueChangedListener(this);
+            set.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    view.setText(stringsToShow[np.getValue()]);
+                    d.dismiss();
+                }
+            });
+            d.show();
         }
-        //Set and show the dialog with the picker
-        d.setTitle(title);
-        d.setContentView(R.layout.dialog_picker);
-        Button set = (Button) d.findViewById(R.id.Set);
-        np.setMinValue(0);
-        np.setMaxValue(stringsToShow.length-1);
-        np.setDisplayedValues(stringsToShow);
-        np.setWrapSelectorWheel(false);
-        np.setOnValueChangedListener(this);
-        set.setOnClickListener(new View.OnClickListener()
-        {
-            @Override
-            public void onClick(View v) {
-                view.setText(stringsToShow[np.getValue()]);
-                d.dismiss();
-            }
-        });
-        d.show();
     }
 
     @Override

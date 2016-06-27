@@ -26,7 +26,7 @@ public class LocatorService extends Service {
     private final IBinder servBinder = new LocatorBinder();
 
     /*-----------------------------CONFIG VARIABLES--------------------------*/
-    private static final String ServerAddress = "192.168.1.19";
+    private static final String ServerAddress = "131.114.198.186";
     //private static final String ServerAddress = "ciaoasdfghjkl.ddns.net";
     private static final int ServerPort = 8080;
     private static final String TAG = "ServiceLocator";
